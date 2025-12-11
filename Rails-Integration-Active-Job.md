@@ -1,49 +1,44 @@
-You can tell Shoryuken to load your Rails application by passing the `-R` or `--rails` flag to the `shoryuken` command.
+# Rails Integration - Active Job
 
-If you load Rails, assuming your workers are located in the `app/jobs` directory, they will be auto-loaded. This means you don't need to require them explicitly with `-r`.
+Shoryuken provides full support for Rails [Active Job](https://guides.rubyonrails.org/active_job_basics.html), enabling you to write processor-agnostic jobs that work with any queue backend.
 
-For middleware and other configurations, you might want to create an initializer:
+## Requirements
+
+- Rails 7.2+
+- Ruby 3.2+
+
+## Basic Setup
+
+### 1. Configure the Queue Adapter
 
 ```ruby
-# config/initializers/shoryuken.rb
-
-Shoryuken.configure_server do |config|
-  # Replace Rails logger so messages are logged wherever Shoryuken is logging
-  # Note: this entire block is only run by the processor, so we don't overwrite
-  #       the logger when the app is running as usual.
-
-  Rails.logger = Shoryuken::Logging.logger
-  Rails.logger.level = Rails.application.config.log_level
-
-  # config.server_middleware do |chain|
-  #  chain.add Shoryuken::MyMiddleware
-  # end
-
-  # For dynamically adding queues prefixed by Rails.env 
-  # Shoryuken.add_group('default', 25)
-  # %w(queue1 queue2).each do |name|
-  #   Shoryuken.add_queue("#{Rails.env}_#{name}", 1, 'default')
-  # end
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_adapter = :shoryuken
+  end
 end
 ```
 
-*Note:* In the above case, since we are replacing the Rails logger, it's desired that this initializer runs before other initializers (in case they themselves use the logger). Since, by Rails conventions, initializers are executed in alphabetical order, this can be achieved by prepending the initializer filename with `00_` (assuming no other initializers alphabetically precede this one).
+### 2. Create an ApplicationJob
 
-### Active Job Support
+```ruby
+# app/jobs/application_job.rb
+class ApplicationJob < ActiveJob::Base
+  # Retry on common transient errors
+  retry_on StandardError, wait: :polynomially_longer, attempts: 5
 
-Yes, Shoryuken supports [Active Job](http://edgeguides.rubyonrails.org/active_job_basics.html)! This means that you can put your jobs in processor-agnostic `ActiveJob::Base` subclasses, and change processors whenever you want (or better yet, switch to Shoryuken from another processor easily!).
+  # Discard jobs that reference deleted records
+  discard_on ActiveJob::DeserializationError
+end
+```
 
-It works as expected once your [queuing backend is set](http://edgeguides.rubyonrails.org/active_job_basics.html#setting-the-backend) to `:shoryuken`. Just put your job in `app/jobs`. Here's an example:
+### 3. Create a Job
 
 ```ruby
 # app/jobs/process_photo_job.rb
-class ProcessPhotoJob < ActiveJob::Base
+class ProcessPhotoJob < ApplicationJob
   queue_as :default
-
-  rescue_from ActiveJob::DeserializationError do |ex|
-    Shoryuken.logger.error ex
-    Shoryuken.logger.error ex.backtrace.join("\n")
-  end
 
   def perform(photo)
     photo.process_image!
@@ -51,56 +46,302 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html#send_message-instance_method)). Shoryuken will raise an exception if you attempt to schedule a job further into the future than this limit.
-
-
-#### Active Job Queue Name Support
-
-*Note:* Active Job allows you to [prefix the queue names](http://edgeguides.rubyonrails.org/active_job_basics.html#queues) of all jobs. Shoryuken supports this behavior natively. By default, though, queue names defined in the config file (or passed to the CLI), are not prefixed similarly. To have Shoryuken honor Active Job prefixes, you must enable that option explicitly. A good place to do that in Rails is in an initializer:
+### 4. Create a Shoryuken Initializer
 
 ```ruby
 # config/initializers/shoryuken.rb
-Shoryuken.active_job_queue_name_prefixing = true
+Shoryuken.configure_server do |config|
+  # Replace Rails logger so messages are logged to Shoryuken's log
+  Rails.logger = Shoryuken::Logging.logger
+  Rails.logger.level = Rails.application.config.log_level
+
+  # Add server middleware
+  # config.server_middleware do |chain|
+  #   chain.add MyMiddleware
+  # end
+end
 ```
 
+### 5. Start Shoryuken
 
-#### Active Job Queue Adapters
+```shell
+bundle exec shoryuken -q default -R
+```
 
-Shoryuken has two queue adapters, the default uses a synchronous producer, that is set up normally in your rails config as:
+---
+
+## Queue Adapters
+
+### Standard Adapter (Synchronous)
+
+The default adapter sends messages synchronously:
 
 ```ruby
 # config/application.rb
 config.active_job.queue_adapter = :shoryuken
 ```
 
-There is also a second option to use an async producer:
+### Concurrent Send Adapter (Asynchronous)
+
+For high-throughput scenarios, use the async adapter with optional success/error handlers:
 
 ```ruby
-# config/application.rb
-config.active_job.queue_adapter = ActiveJob::QueueAdapters::ShoryukenConcurrentSendAdapter.new
+# config/initializers/shoryuken.rb
+success_handler = ->(response, job, options) {
+  Rails.logger.info "Enqueued #{job.class.name} successfully"
+}
+
+error_handler = ->(error, job, options) {
+  Rails.logger.error "Failed to enqueue #{job.class.name}: #{error.message}"
+  # Report to error tracking service
+  Sentry.capture_exception(error)
+}
+
+Rails.application.config.active_job.queue_adapter =
+  ActiveJob::QueueAdapters::ShoryukenConcurrentSendAdapter.new(success_handler, error_handler)
 ```
 
-If you have a lot of jobs to produce, consider using the `ShoryukenConcurrentSendAdapter`. Another hint for quick job enqueuing for `ActiveRecord` objects is to use a query that only selects the `id`:
+---
+
+## Queue Configuration
+
+### Queue Name Prefixing
+
+Active Job supports [queue name prefixing](https://guides.rubyonrails.org/active_job_basics.html#queues). To have Shoryuken honor these prefixes:
 
 ```ruby
-Rails.application.config.active_job.queue_adapter = ActiveJob::QueueAdapters::ShoryukenConcurrentSendAdapter.new
-MyModel.expensive_scope.select(:id).load.each { |obj| MyJob.perform_later(obj) }
+# config/initializers/shoryuken.rb
+Shoryuken.active_job_queue_name_prefixing = true
 ```
 
-#### Set SQS SendMessage parameters with `.set`
+Example with prefixing enabled:
 
 ```ruby
-MyJob.set(message_group_id: 'abc123',
-          message_deduplication_id: 'dedupe',
-          message_attributes: {
-            'key' => {
-              string_value: 'myvalue',
-              data_type: 'String'
-            }
-          })
-     .perform_later(123, 'abc')
+# config/environments/production.rb
+config.active_job.queue_name_prefix = "production"
+
+# This job will use queue "production_reports"
+class ReportJob < ApplicationJob
+  queue_as :reports
+end
 ```
 
-### How to use [`retry_on`](https://edgeguides.rubyonrails.org/active_job_basics.html#retrying-or-discarding-failed-jobs)
+### Dynamic Queue Names
 
-Please follow the steps detailed [here](https://github.com/phstc/shoryuken/issues/553#issuecomment-465813111) to make `retry_on` work with Shoryuken.
+```ruby
+class TenantJob < ApplicationJob
+  queue_as { "tenant_#{Current.tenant_id}" }
+
+  def perform(data)
+    # Process tenant-specific work
+  end
+end
+```
+
+---
+
+## SQS Message Parameters
+
+Use `.set` to customize SQS message parameters:
+
+```ruby
+MyJob.set(
+  message_group_id: 'group-123',           # For FIFO queues
+  message_deduplication_id: 'dedupe-456',  # For FIFO queues
+  message_attributes: {
+    'correlation_id' => {
+      string_value: SecureRandom.uuid,
+      data_type: 'String'
+    }
+  }
+).perform_later(data)
+```
+
+---
+
+## Scheduling and Delays
+
+### Delayed Execution
+
+```ruby
+# Process in 5 minutes
+MyJob.set(wait: 5.minutes).perform_later(data)
+
+# Process at a specific time
+MyJob.set(wait_until: Date.tomorrow.noon).perform_later(data)
+```
+
+**Note:** SQS limits delays to 15 minutes maximum. For longer delays, use a scheduling solution like EventBridge Scheduler.
+
+---
+
+## Bulk Enqueuing (Rails 7.1+)
+
+Enqueue multiple jobs efficiently using the SQS batch API:
+
+```ruby
+# Enqueue many jobs in batches of 10
+jobs = users.map { |user| NotifyUserJob.new(user) }
+ActiveJob.perform_all_later(jobs)
+```
+
+This uses `send_message_batch` internally, which is more efficient than individual `send_message` calls.
+
+**Batch Limits:**
+- Maximum 10 messages per batch
+- Maximum 1MB total batch size
+
+See [[Bulk Enqueuing]] for more details.
+
+---
+
+## ActiveJob Continuations (Rails 8.1+)
+
+Shoryuken supports ActiveJob Continuations for graceful interruption of long-running jobs:
+
+```ruby
+class DataExportJob < ApplicationJob
+  def perform(export)
+    export.records.find_each do |record|
+      # Check if Shoryuken is shutting down
+      if stopping?
+        # Save progress and re-enqueue
+        export.update!(last_processed_id: record.id)
+        self.class.perform_later(export)
+        return
+      end
+
+      process_record(record)
+    end
+
+    export.mark_completed!
+  end
+end
+```
+
+The `stopping?` method returns `true` when Shoryuken receives a shutdown signal, allowing jobs to checkpoint their progress.
+
+See [[ActiveJob Continuations]] for more details.
+
+---
+
+## CurrentAttributes Persistence
+
+Automatically flow Rails `ActiveSupport::CurrentAttributes` from enqueue to job execution:
+
+```ruby
+# config/initializers/shoryuken.rb
+require 'shoryuken/active_job/current_attributes'
+Shoryuken::ActiveJob::CurrentAttributes.persist('Current')
+```
+
+```ruby
+# app/models/current.rb
+class Current < ActiveSupport::CurrentAttributes
+  attribute :user, :request_id, :tenant
+end
+```
+
+```ruby
+# In your controller
+Current.user = current_user
+Current.tenant = current_tenant
+
+# The job will have access to Current.user and Current.tenant
+AuditJob.perform_later(action: 'updated_profile')
+```
+
+See [[CurrentAttributes]] for more details.
+
+---
+
+## Transaction Safety (Rails 7.2+)
+
+Jobs are automatically enqueued after the database transaction commits:
+
+```ruby
+User.transaction do
+  user = User.create!(name: 'Ken')
+  WelcomeEmailJob.perform_later(user)  # Enqueued AFTER transaction commits
+end
+```
+
+This prevents jobs from processing before the record exists. Shoryuken enables this by implementing `enqueue_after_transaction_commit?`.
+
+---
+
+## Retrying Failed Jobs
+
+### Using ActiveJob retry_on
+
+```ruby
+class ProcessPaymentJob < ApplicationJob
+  retry_on PaymentGatewayError, wait: :polynomially_longer, attempts: 5
+  discard_on InvalidPaymentError
+
+  def perform(payment)
+    PaymentGateway.process(payment)
+  end
+end
+```
+
+### Using Shoryuken's Exponential Backoff
+
+For more control, use Shoryuken's `retry_intervals`:
+
+```ruby
+class MyWorker
+  include Shoryuken::Worker
+
+  shoryuken_options queue: 'default',
+                    auto_delete: true,
+                    retry_intervals: [60, 300, 3600]  # 1min, 5min, 1hr
+
+  def perform(sqs_msg, body)
+    # Process message
+  end
+end
+```
+
+See [[Retrying a message]] for more details.
+
+---
+
+## Error Handling
+
+### Deserialization Errors
+
+```ruby
+class MyJob < ApplicationJob
+  # Discard jobs with serialization errors (e.g., deleted records)
+  discard_on ActiveJob::DeserializationError
+
+  def perform(record)
+    record.process!
+  end
+end
+```
+
+### Custom Exception Handlers
+
+```ruby
+# config/initializers/shoryuken.rb
+Shoryuken.configure_server do |config|
+  config.on_exception do |ex, queue, sqs_msg|
+    Sentry.capture_exception(ex, extra: {
+      queue: queue,
+      message_id: sqs_msg.message_id
+    })
+  end
+end
+```
+
+---
+
+## Next Steps
+
+- [[ActiveJob Continuations]] - Handle graceful shutdowns
+- [[CurrentAttributes]] - Persist request context
+- [[Bulk Enqueuing]] - Efficient batch operations
+- [[Middleware]] - Add cross-cutting concerns
+- [[Testing]] - Test your jobs
