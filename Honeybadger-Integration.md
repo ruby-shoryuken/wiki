@@ -1,0 +1,1 @@
+The [honeybadger gem](https://github.com/honeybadger-io/honeybadger-ruby/) integrates with Shoryuken automatically to report failed jobs to [Honeybadger](https://www.honeybadger.io/).
