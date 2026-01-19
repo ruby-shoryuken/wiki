@@ -9,6 +9,8 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout wiki repo
         uses: actions/checkout@v4
@@ -20,7 +22,7 @@ jobs:
         with:
           repository: ruby-shoryuken/shoryuken.wiki
           path: github-wiki
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.WIKI_SYNC_TOKEN }}
 
       - name: Sync to GitHub wiki
         run: |
