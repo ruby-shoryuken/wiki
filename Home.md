@@ -1,6 +1,7 @@
 Welcome to the Shoryuken wiki!
 
 * [[Getting Started]]
+* [[Upgrading to 7.0]]
 * [[Rails Integration Active Job]]
 * [[Worker options]]
 * [[Shoryuken options]]
