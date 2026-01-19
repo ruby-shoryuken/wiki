@@ -1,0 +1,43 @@
+name: Sync to GitHub Wiki
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout wiki repo
+        uses: actions/checkout@v4
+        with:
+          path: wiki-repo
+
+      - name: Checkout GitHub wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ruby-shoryuken/shoryuken.wiki
+          path: github-wiki
+          token: ${{ secrets.WIKI_SYNC_TOKEN }}
+
+      - name: Sync to GitHub wiki
+        run: |
+          # Copy all markdown files to GitHub wiki
+          rsync -av --delete wiki-repo/*.md github-wiki/ --exclude .git
+
+          cd github-wiki
+
+          # Check if there are changes
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+
+          # Configure git and commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync from ruby-shoryuken/wiki"
+          git push
