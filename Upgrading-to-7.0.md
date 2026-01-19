@@ -28,6 +28,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 - Ruby 3.2
 - Ruby 3.3
 - Ruby 3.4
+- Ruby 4.0
 
 **Action Required:** If you're using Ruby 3.1 or older, you must upgrade to Ruby 3.2+ or remain on Shoryuken 6.x.
 
