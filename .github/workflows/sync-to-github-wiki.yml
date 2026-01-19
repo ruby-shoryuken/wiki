@@ -20,7 +20,7 @@ jobs:
         with:
           repository: ruby-shoryuken/shoryuken.wiki
           path: github-wiki
-          token: ${{ secrets.WIKI_SYNC_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync to GitHub wiki
         run: |
