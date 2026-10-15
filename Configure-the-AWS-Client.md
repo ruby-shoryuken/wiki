@@ -28,10 +28,4 @@ Without `sqs_client`, Shoryuken builds `Aws::SQS::Client.new` with the options u
 
 ## Local SQS server
 
-To use ElasticMQ, LocalStack or another SQS-compatible server, pass its `endpoint` to `Aws::SQS::Client.new`. See [[Using a local mock SQS server]].
-
-The `shoryuken sqs` CLI commands take the endpoint with `-e`/`--endpoint`, or from the `SHORYUKEN_SQS_ENDPOINT` env var:
-
-```shell
-SHORYUKEN_SQS_ENDPOINT=http://localhost:9324 bundle exec shoryuken sqs ls
-```
+See [[Using a local mock SQS server]].

@@ -59,4 +59,4 @@ Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to US
 
 ## Shutdown
 
-Every platform above stops the process with a signal. TERM gives busy workers up to `timeout` seconds (default `8`) before they are killed; USR1 stops fetching, waits for busy workers and exits. Set `timeout` below the time your platform waits before it kills the process. See [[Signals]] and [[Shoryuken options]].
+Set `timeout` below the time your platform waits before it kills the process. See [[Signals]].

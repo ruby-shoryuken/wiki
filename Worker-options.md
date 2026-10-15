@@ -58,7 +58,7 @@ class KeenIOWorker
 end
 ```
 
-If you are using a custom middleware, check [this article](https://github.com/ruby-shoryuken/shoryuken/wiki/Middleware#be-careful-with-batchable-workers), the `sqs_msg` and `body` are arrays when `batch=true`.
+If you are using a custom middleware, check [[Middleware]], the `sqs_msg` and `body` are arrays when `batch=true`.
 
 Another important observation regarding batchable workers is if one of your messages causes an exception, consequently `auto_delete` won't be executed for any message.
 
