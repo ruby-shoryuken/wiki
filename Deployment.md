@@ -28,8 +28,8 @@ See [OpsWorks Recipe](https://github.com/carpet/opsworks-shoryuken).
 
 ## AWS Elastic Beanstalk
 
-See [.ebextension file here](https://github.com/phstc/shoryuken/wiki/AWS-Beanstalk-Config).
+See [.ebextension file here](https://github.com/ruby-shoryuken/shoryuken/wiki/AWS-Beanstalk-Config).
 
 ## systemd integration
 
-See [systemd integration](https://github.com/phstc/shoryuken/issues/320#issuecomment-282290069).
+See [systemd integration](https://github.com/ruby-shoryuken/shoryuken/issues/320#issuecomment-282290069).

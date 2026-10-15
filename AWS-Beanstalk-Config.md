@@ -74,7 +74,7 @@ exit 0
 ``` yaml
 
 # .ebextensions/shoryuken.config
-# Based on the conversation in https://github.com/phstc/shoryuken/issues/48
+# Based on the conversation in https://github.com/ruby-shoryuken/shoryuken/issues/48
 
 files:
   "/opt/elasticbeanstalk/hooks/appdeploy/post/50_restart_shoryuken":
@@ -117,4 +117,4 @@ files:
 ```
 
 ### Worker environment
-For information on deploying to a worker environment see the thread in https://github.com/phstc/shoryuken/issues/48
+For information on deploying to a worker environment see the thread in https://github.com/ruby-shoryuken/shoryuken/issues/48

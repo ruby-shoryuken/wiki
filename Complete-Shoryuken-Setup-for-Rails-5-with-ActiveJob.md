@@ -67,7 +67,7 @@ queues:
 You can use [dotenv](https://github.com/bkeepers/dotenv) to setup your environment variables.
 
 The number `1` above after the queue name is the queue weight, please refer to [Polling strategies
-](https://github.com/phstc/shoryuken/wiki/Polling-strategies) for more information.
+](https://github.com/ruby-shoryuken/shoryuken/wiki/Polling-strategies) for more information.
 
 ## Run the following command to start consuming the SQS queue
 

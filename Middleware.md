@@ -64,5 +64,5 @@ end
 ```
 
 
-*Note:* When [batch is enabled](https://github.com/phstc/shoryuken/wiki/Worker-options#batch), the `sqs_msg` and `body` arguments are arrays.
+*Note:* When [batch is enabled](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch), the `sqs_msg` and `body` arguments are arrays.
 

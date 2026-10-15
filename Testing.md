@@ -1,6 +1,6 @@
 There are few options for testing Shoryuken workers, there are some examples below with RSpec, which probably works very similar with most of the testing frameworks.
 
-Another alternative is to enable the [Shoryuken Inline adapter](https://github.com/phstc/shoryuken/wiki/Shoryuken-Inline-adapter), or if you are using Active Job, refer to [Active Job Inline adapter
+Another alternative is to enable the [Shoryuken Inline adapter](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-Inline-adapter), or if you are using Active Job, refer to [Active Job Inline adapter
 ](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html).
 
 ## Testing workers with RSpec
