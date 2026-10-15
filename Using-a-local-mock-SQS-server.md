@@ -1,8 +1,37 @@
 It is possible to configure Shoryuken to use a local mock SQS server implementation in place of Amazon's real SQS. This is useful, for example, when doing local development without an Internet connection.
 
-This guide will help you to configure one such mock SQS service implementation, [`moto`](https://github.com/spulec/moto). We'll set up `aws-sdk-ruby` and `shoryuken` to use `moto` instead of the real SQS provided by AWS.
+This guide shows two such servers: [ElasticMQ](https://github.com/softwaremill/elasticmq), which Shoryuken's own integration tests use, and [`moto`](https://github.com/spulec/moto).
 
-# Install and run `moto` stand alone server mode
+## ElasticMQ
+
+Shoryuken's repository runs ElasticMQ with this `docker-compose.yml`:
+
+```yaml
+services:
+  elasticmq:
+    image: softwaremill/elasticmq-native:1.7.1
+    container_name: elasticmq
+    ports:
+      - "9324:9324"
+```
+
+Point the SQS client at it. The credentials are placeholders, as in Shoryuken's test setup:
+
+```ruby
+sqs_client = Aws::SQS::Client.new(
+  region: 'us-east-1',
+  endpoint: 'http://localhost:9324',
+  access_key_id: 'fake',
+  secret_access_key: 'fake'
+)
+
+Shoryuken.configure_server { |config| config.sqs_client = sqs_client }
+Shoryuken.configure_client { |config| config.sqs_client = sqs_client }
+```
+
+## moto
+
+### Install and run `moto` stand alone server mode
 
 [Install moto](https://github.com/spulec/moto#stand-alone-server-mode) with:
 
@@ -16,19 +45,11 @@ To run it:
 moto_server sqs -p 4576 -H localhost
 ```
 
-# Upgrade `aws-sdk`
+### Configure Shoryuken to use `moto`
 
-To use a local SQS server, you must be running `aws-sdk` version 2.2.15 or later. If your version of `aws-sdk` is older, update it.
+Set the `endpoint` of the SQS client to your local `moto` instance. We'll also have to disable MD5 checks from `send_message*` calls in the AWS SDK.
 
-```
-bundle update aws-sdk
-```
-
-# Configure Shoryuken to use `moto`
-
-We'll need to change the `:sqs_endpoint` key of Shoryuken's AWS config to point to your local `moto` instance. We'll also have to disable MD5 checks from `send_message*` calls in the AWS SDK.
-
-## Configure Client
+#### Configure Client
 
 ```ruby
 Shoryuken.configure_client do |config|
@@ -42,7 +63,7 @@ Shoryuken.configure_client do |config|
 end
 ```
 
-## Configure Server
+#### Configure Server
 
 ```ruby
 Shoryuken.configure_server do |config|
