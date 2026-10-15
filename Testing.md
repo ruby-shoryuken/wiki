@@ -20,7 +20,7 @@ allow(MyJob).to receive(:perform_async) { |sqs_msg, body| MyJob.new.perform(sqs_
 ```ruby
 require 'spec_helper'
 # OR
-# require 'rails_helper' # if using Rails 4.x
+# require 'rails_helper' # with Rails
 
 RSpec.describe MyWorker do
   let(:sqs_msg) { double message_id: 'fc754df7-9cc2-4c41-96ca-5996a44b771e',
@@ -56,3 +56,26 @@ RSpec.describe MyWorker do
   end
 end
 ```
+
+## Running workers inline in one test
+
+To run `perform_async` and `perform_in` inline only in some tests, switch the `worker_executor` and restore it afterwards (see [[Shoryuken Inline adapter]]):
+
+```ruby
+RSpec.describe 'processing a message' do
+  around do |example|
+    Shoryuken.worker_executor = Shoryuken::Worker::InlineExecutor
+    example.run
+  ensure
+    Shoryuken.worker_executor = Shoryuken::Worker::DefaultExecutor
+  end
+
+  it 'runs the worker right away' do
+    MyWorker.perform_async('test')
+  end
+end
+```
+
+## Testing against a local SQS server
+
+For end-to-end tests with real queues, run a local SQS-compatible server. See [[Using a local mock SQS server]].
