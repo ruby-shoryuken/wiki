@@ -11,6 +11,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 ## Rails & ActiveJob
 
 - [[Rails Integration Active Job]] - ActiveJob adapter setup and usage
+- [[CurrentAttributes]] - Carry Rails CurrentAttributes into jobs
 
 ## Workers & queues
 

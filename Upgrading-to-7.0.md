@@ -201,6 +201,8 @@ When Shoryuken receives a shutdown signal, the `stopping?` method in the ActiveJ
 
 **New:** Rails `ActiveSupport::CurrentAttributes` can now flow from enqueue to job execution.
 
+See [[CurrentAttributes]] for details.
+
 This feature automatically serializes current attributes into the job payload when enqueuing and restores them before execution.
 
 **Setup:**
