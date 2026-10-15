@@ -1,106 +1,346 @@
-Shoryuken options can be set via CLI:
+# Shoryuken Options
+
+Shoryuken can be configured via CLI options, a YAML configuration file, or programmatically.
+
+## Configuration Methods
+
+### CLI Options
 
 ```shell
-shoryuken -q queue1 -L ./shoryuken.log -P ./shoryuken.pid
+shoryuken -q queue1 -q queue2 -c 25 -R -C config/shoryuken.yml
 ```
-or via configuration file: 
+
+### Configuration File
 
 ```yaml
-# shoryuken.yml
-logfile: ./shoryuken.log
-pidfile: ./shoryuken.pid
-queues: 
-  - queue1
+# config/shoryuken.yml
+concurrency: 25
+timeout: 25
+queues:
+  - [default, 2]
+  - [low_priority, 1]
 ```
 
-When using a configuration file, you must set via CLI `shoryuken -C ./shoryuken.yml`, otherwise Shoryuken won't use it.
+Start with the config file:
 
-Some options available in the configuration file, are not available in the CLI. For checking all options available in the CLI: `shoryuken help start`.
+```shell
+shoryuken -C config/shoryuken.yml -R
+```
 
-## delay
+### Programmatic Configuration
 
-Default: `0`
+```ruby
+# config/initializers/shoryuken.rb
+Shoryuken.configure_server do |config|
+  # Server-side configuration
+end
 
-Delay is the number of seconds to pause fetching from when an empty queue.
+Shoryuken.configure_client do |config|
+  # Client-side configuration (when enqueuing jobs)
+end
+```
 
-Given this configuration:
+---
+
+## CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `-C, --config FILE` | Path to YAML configuration file |
+| `-R, --rails` | Load Rails application |
+| `-r, --require FILE` | Require a file or directory |
+| `-q, --queue QUEUE[,WEIGHT]` | Queue to process (can specify multiple) |
+| `-c, --concurrency INT` | Number of worker threads |
+| `-t, --timeout INT` | Shutdown timeout in seconds |
+| `-L, --logfile FILE` | Log file path |
+| `-P, --pidfile FILE` | PID file path |
+| `-d, --daemon` | Daemonize process |
+
+### Examples
+
+```shell
+# Basic usage with Rails
+shoryuken -R -C config/shoryuken.yml
+
+# Multiple queues with weights
+shoryuken -R -q critical,3 -q default,2 -q low,1
+
+# With logging and PID file
+shoryuken -R -C config/shoryuken.yml -L log/shoryuken.log -P tmp/pids/shoryuken.pid
+
+# Daemonize
+shoryuken -R -C config/shoryuken.yml -d
+```
+
+For all CLI options:
+
+```shell
+shoryuken help start
+```
+
+---
+
+## Configuration File Options
+
+### concurrency
+
+Number of worker threads. Default: `25`
+
+```yaml
+concurrency: 25
+```
+
+**Note:** Set your database connection pool size to at least this value.
+
+### timeout
+
+Shutdown timeout in seconds. Default: `8`
+
+```yaml
+timeout: 25
+```
+
+Workers that don't finish within this time during SIGTERM are forcefully terminated.
+
+### delay
+
+Seconds to pause before re-polling an empty queue. Default: `0`
 
 ```yaml
 delay: 25
+```
+
+Setting `delay: 0` polls continuously (faster but more expensive).
+
+### queues
+
+Queues to process with optional weights:
+
+```yaml
+# Simple list
 queues:
   - queue1
   - queue2
-```
 
-If Shoryuken tries to fetch messages from `queue1` and it has no messages, Shoryuken will pause fetching from `queue1` for 25 seconds.
-
-Usually having a delay is more cost-efficient, but if you want to consume messages as soon as they get in the queue, I would recommend setting `delay: 0` (default value) to stop pausing empty queues. 
-
-[Check the AWS SQS pricing page for more information](https://aws.amazon.com/sqs/pricing/).
-
-## queues
-
-A single Shoryuken process can consume messages from multiple queues. You can define your queues as follows:
-
-```yaml
+# With weights (higher = more priority)
 queues:
-  - queue1
-  - queue2
-```
+  - [critical, 3]
+  - [default, 2]
+  - [low, 1]
 
-You can also configure the queue URLs instead of names.
-
-```yaml
+# Using URLs (for cross-account/cross-region)
 queues:
-  - https://sqs.eu-west-1.amazonaws.com:000/1111111111/queue1
-  - https://sqs.eu-east-1.amazonaws.com:000/2222222222/queue2
-```
+  - https://sqs.us-east-1.amazonaws.com/123456789/myqueue
 
-Or ARN.
-
-```yaml
+# Using ARNs
 queues:
-  - arn:aws:sqs:us-east-1:123456789012:queue1
-  - arn:aws:sqs:us-east-1:123456789012:queue2
+  - arn:aws:sqs:us-east-1:123456789:myqueue
 ```
 
-### Load balancing
+### logfile
 
-Supposing you have `queue1`, which you would like to fetch messages twice as much as `queue2`, you can configure that as follows:
+Path to log file:
 
 ```yaml
-queues:
-  - [queue1, 8]
-  - [queue2, 4]
-  - [queue3, 1]
+logfile: log/shoryuken.log
 ```
 
-The setup above will cause Shoryuken to fetch messages in cycles of `queue1` 8 times, then `queue2` 4 times, then `queue3` once, then repeat.
+### pidfile
 
-*Note:* Each fetch can fetch up to 10 messages at a time (SQS limitation). The fetch size will also depend on the available workers at the time of the fetch.
-
-See [Polling strategies](https://github.com/phstc/shoryuken/wiki/Polling-strategies#weightedroundrobin).
-
-## concurrency
-
-Default: `25`
-
-Concurrency is the number of threads available for processing messages at a time. Be careful with changing this value, otherwise, you could crush your machine with I/O.
-
-*Note:* When accessing databases (`ActiveRecord`) or other resources with `pool` support in your workers, make sure to set `pool` size with the same value or higher than the concurrency set in Shoryuken.
+Path to PID file:
 
 ```yaml
-concurrency: <%= ENV.fetch('YOUR_CONCURRENCY', 25) %>
+pidfile: tmp/pids/shoryuken.pid
 ```
 
-## cache_visibility_timeout
+---
 
-By default, Shoryuken will make requests against SQS for getting the updated queue visibility timeout, so if you change the visibility timeout in SQS, Shoryuken will automatically update it. 
+## Processing Groups
 
-If you want to reduce the number of requests against SQS (therefore reducing your quota usage), you can disable this behavior by:
+Isolate queues with separate concurrency settings:
+
+```yaml
+groups:
+  critical:
+    concurrency: 10
+    delay: 0
+    queues:
+      - [payments, 1]
+  default:
+    concurrency: 25
+    delay: 5
+    queues:
+      - [emails, 2]
+      - [reports, 1]
+```
+
+See [[Processing Groups]] for more details.
+
+---
+
+## AWS Configuration
+
+Configure AWS credentials in the config file:
+
+```yaml
+aws:
+  access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+  region: us-east-1
+```
+
+**Recommended:** Use IAM roles instead of access keys. See [[Configure the AWS Client]].
+
+---
+
+## Programmatic Options
+
+### Server Configuration
+
+```ruby
+Shoryuken.configure_server do |config|
+  # Logger
+  config.logger = Rails.logger
+  config.logger.level = Logger::INFO
+
+  # Middleware
+  config.server_middleware do |chain|
+    chain.add MyMiddleware
+  end
+
+  # Lifecycle events
+  config.on(:startup) { puts "Starting" }
+  config.on(:shutdown) { puts "Stopping" }
+
+  # Exception handler
+  config.on_exception do |ex, queue, sqs_msg|
+    Sentry.capture_exception(ex)
+  end
+end
+```
+
+### Client Configuration
+
+```ruby
+Shoryuken.configure_client do |config|
+  # SQS client configuration
+  config.sqs_client = Aws::SQS::Client.new(region: 'us-east-1')
+end
+```
+
+### Dynamic Queue Registration
+
+```ruby
+# Add a queue at runtime
+Shoryuken.add_queue('new_queue', 1, 'default')
+
+# Add a group
+Shoryuken.add_group('critical', 10)
+Shoryuken.add_queue('payments', 1, 'critical')
+```
+
+---
+
+## Other Options
+
+### active_job_queue_name_prefixing
+
+Honor ActiveJob queue name prefixes:
+
+```ruby
+# config/initializers/shoryuken.rb
+Shoryuken.active_job_queue_name_prefixing = true
+```
+
+### cache_visibility_timeout
+
+Cache queue visibility timeout to reduce SQS API calls:
 
 ```ruby
 Shoryuken.cache_visibility_timeout = true
 ```
 
-With `cache_visibility_timeout` enabled, every time you change the visibility timeout in SQS, you will need to restart Shoryuken, otherwise, it won't get updated.
+**Note:** With caching enabled, restart Shoryuken after changing visibility timeout in SQS.
+
+---
+
+## ERB in Configuration Files
+
+Configuration files support ERB:
+
+```yaml
+# config/shoryuken.yml
+concurrency: <%= ENV.fetch('SHORYUKEN_CONCURRENCY', 25) %>
+timeout: <%= ENV.fetch('SHORYUKEN_TIMEOUT', 25) %>
+queues:
+  - <%= ENV.fetch('QUEUE_NAME', 'default') %>
+```
+
+---
+
+## Environment-Specific Configuration
+
+```yaml
+# config/shoryuken.yml
+<% if Rails.env.production? %>
+concurrency: 50
+<% else %>
+concurrency: 5
+<% end %>
+
+queues:
+  - <%= "#{Rails.env}_default" %>
+```
+
+---
+
+## Complete Example
+
+```yaml
+# config/shoryuken.yml
+concurrency: <%= ENV.fetch('SHORYUKEN_CONCURRENCY', 25) %>
+timeout: 25
+delay: 5
+logfile: <%= Rails.root.join('log', 'shoryuken.log') %>
+pidfile: <%= Rails.root.join('tmp', 'pids', 'shoryuken.pid') %>
+
+groups:
+  critical:
+    concurrency: 10
+    delay: 0
+    queues:
+      - [payments, 1]
+      - [webhooks, 1]
+  default:
+    concurrency: 25
+    delay: 5
+    queues:
+      - [emails, 3]
+      - [reports, 2]
+      - [cleanup, 1]
+```
+
+```ruby
+# config/initializers/shoryuken.rb
+Shoryuken.configure_server do |config|
+  Rails.logger = Shoryuken::Logging.logger
+  Rails.logger.level = Rails.application.config.log_level
+
+  config.on(:startup) do
+    Rails.logger.info "Shoryuken starting with concurrency #{Shoryuken.options[:concurrency]}"
+  end
+
+  config.on(:shutdown) do
+    Rails.logger.info "Shoryuken shutting down"
+  end
+end
+```
+
+---
+
+## Related
+
+- [[Worker options]] - Per-worker configuration
+- [[Processing Groups]] - Queue isolation
+- [[Configure the AWS Client]] - AWS credentials
+- [[Polling strategies]] - Queue polling behavior

@@ -1,25 +1,112 @@
-### Web server environment 
-To restart (or just start) Shoryuken on each deployment to Beanstalk, prepare the configuration files as described below. 
-Make sure the selected EC2 instance type has enough memory to ensure the functioning of both the web server and Shoryuken.
+# AWS Elastic Beanstalk Configuration
 
-#### Amazon Linux 2 and 2023 with Procfile
+This guide covers running Shoryuken workers on AWS Elastic Beanstalk.
 
-Generally, it is recommended to run more complex projects on AWS EB with your own Procfile, it gives greater control over the version of the web server and other parameters.
-The easiest way to add a shoryuken worker in Elastic Beanstalk is to simply add the command to run it to the Procfile as `worker:`
+## Recommended: Procfile Method
+
+The simplest and most reliable approach is using a Procfile. This works with Amazon Linux 2 and Amazon Linux 2023.
+
+### Setup
+
+Create a `Procfile` in your application root:
 
 ```
 web: bundle exec puma -C /opt/elasticbeanstalk/config/private/pumaconf.rb --pidfile /var/app/current/tmp/pids/server.pid
-worker: bundle exec shoryuken -R -P /var/app/current/tmp/pids/shoryuken.pid -L /var/app/current/log/shoryuken.log
+worker: bundle exec shoryuken -R -C config/shoryuken.yml -L /var/app/current/log/shoryuken.log
 ```
 
-#### Amazon Linux 2 with hooks (deprecated)
+### With Health Checks
 
-`.platform/hooks/postdeploy/restart_shoryuken.sh`
+```
+web: bundle exec puma -C /opt/elasticbeanstalk/config/private/pumaconf.rb
+worker: bundle exec shoryuken -R -C config/shoryuken.yml
+```
 
-```sh
+Configure health check via Shoryuken initializer (see [[Health Checks]]).
+
+### Configuration File
+
+```yaml
+# config/shoryuken.yml
+concurrency: 25
+timeout: 25
+queues:
+  - [default, 1]
+```
+
+### IAM Role
+
+Ensure your Elastic Beanstalk instance role has SQS permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:DeleteMessageBatch",
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl",
+        "sqs:SendMessage",
+        "sqs:SendMessageBatch",
+        "sqs:ChangeMessageVisibility",
+        "sqs:ChangeMessageVisibilityBatch"
+      ],
+      "Resource": "arn:aws:sqs:*:*:myapp-*"
+    }
+  ]
+}
+```
+
+---
+
+## Instance Sizing
+
+When running both web and worker on the same instance, ensure adequate resources:
+
+| Instance Type | Web + Worker | Notes |
+|---------------|--------------|-------|
+| t3.small | Light workloads | 2 GB RAM |
+| t3.medium | Medium workloads | 4 GB RAM |
+| t3.large | Heavy workloads | 8 GB RAM |
+
+### Memory Allocation
+
+```yaml
+# config/shoryuken.yml
+concurrency: 10  # Reduce if sharing with web server
+```
+
+---
+
+## Environment Variables
+
+Set via Elastic Beanstalk console or `.ebextensions`:
+
+```yaml
+# .ebextensions/env.config
+option_settings:
+  aws:elasticbeanstalk:application:environment:
+    RAILS_ENV: production
+    AWS_REGION: us-east-1
+```
+
+---
+
+## Alternative: Platform Hooks (Deprecated)
+
+For more control, you can use platform hooks. This approach is more complex and is deprecated in favor of the Procfile method.
+
+### Amazon Linux 2/2023 Hooks
+
+Create `.platform/hooks/postdeploy/restart_shoryuken.sh`:
+
+```bash
 #!/bin/bash
 
-# NOTE: get-config platformconfig returns paths WITH the trailing slash .../
 APP_DEPLOY_DIR=$(/opt/elasticbeanstalk/bin/get-config platformconfig -k AppDeployDir)
 LOG_DIR="${APP_DEPLOY_DIR}log"
 PID_DIR="${APP_DEPLOY_DIR}tmp/pids"
@@ -27,9 +114,8 @@ EB_APP_USER=$(/opt/elasticbeanstalk/bin/get-config platformconfig -k AppUser)
 
 mkdir -m 777 -p $PID_DIR
 
-if [ -f $PID_DIR/shoryuken.pid ]
-then
-  kill -TERM `cat $PID_DIR/shoryuken.pid` || echo "The shoryuken process was not running."
+if [ -f $PID_DIR/shoryuken.pid ]; then
+  kill -TERM $(cat $PID_DIR/shoryuken.pid) || echo "Shoryuken was not running"
   rm -rf $PID_DIR/shoryuken.pid
 fi
 
@@ -37,84 +123,95 @@ sleep 10
 
 cd $APP_DEPLOY_DIR
 
-# NOTE: in local development environment, run `bundle exec dotenv shoryuken \`
 su -s /bin/bash -c "bundle exec shoryuken \
   -R \
   -P $PID_DIR/shoryuken.pid \
   -C ${APP_DEPLOY_DIR}config/shoryuken.yml \
-  -r ${APP_DEPLOY_DIR}app/jobs \
   -L $LOG_DIR/shoryuken.log \
   -d" $EB_APP_USER
 
 exit 0
 ```
 
-----
+Create `.platform/hooks/predeploy/mute_shoryuken.sh`:
 
-`.platform/hooks/predeploy/mute_shoryuken.sh`
-
-```sh
+```bash
 #!/bin/bash
 
 APP_DEPLOY_DIR=$(/opt/elasticbeanstalk/bin/get-config platformconfig -k AppDeployDir)
 PID_DIR="${APP_DEPLOY_DIR}tmp/pids"
 EB_APP_USER=$(/opt/elasticbeanstalk/bin/get-config platformconfig -k AppUser)
 
-if [ -f $PID_DIR/shoryuken.pid ]
-then
-  su -s /bin/bash -c "kill -USR1 `cat $PID_DIR/shoryuken.pid`" $EB_APP_USER || echo "The shoryuken process was not running."
+if [ -f $PID_DIR/shoryuken.pid ]; then
+  su -s /bin/bash -c "kill -USR1 $(cat $PID_DIR/shoryuken.pid)" $EB_APP_USER || echo "Shoryuken was not running"
 fi
 
 exit 0
 ```
 
-#### Amazon Linux 1 (deprecated platform)
-`.ebextensions/shoryuken.config` inside your repo.
+Make scripts executable:
 
-``` yaml
-
-# .ebextensions/shoryuken.config
-# Based on the conversation in https://github.com/phstc/shoryuken/issues/48
-
-files:
-  "/opt/elasticbeanstalk/hooks/appdeploy/post/50_restart_shoryuken":
-    mode: "000777"
-    content: |
-      APP_DEPLOY_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k app_deploy_dir)
-      LOG_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k app_log_dir)
-      PID_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k app_pid_dir)
-
-      EB_SCRIPT_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k script_dir)
-      EB_SUPPORT_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k support_dir) 
-      . $EB_SUPPORT_DIR/envvars
-      . $EB_SCRIPT_DIR/use-app-ruby.sh
-
-      if [ -f $PID_DIR/shoryuken.pid ]
-      then
-        kill -TERM `cat $PID_DIR/shoryuken.pid` || echo "The shoryuken process was not running."
-        rm -rf $PID_DIR/shoryuken.pid
-      fi
-
-      sleep 10
-
-      cd $APP_DEPLOY_DIR
-
-      bundle exec shoryuken \
-        -R \
-        -P $PID_DIR/shoryuken.pid \
-        -C $APP_DEPLOY_DIR/config/shoryuken.yml \
-        -L $LOG_DIR/shoryuken.log \
-        -d
-
-  "/opt/elasticbeanstalk/hooks/appdeploy/pre/03_mute_shoryuken":
-    mode: "000777"
-    content: |
-      PID_DIR=$(/opt/elasticbeanstalk/bin/get-config container -k app_pid_dir)
-      if [ -f $PID_DIR/shoryuken.pid ]
-      then
-        kill -USR1 `cat $PID_DIR/shoryuken.pid` || echo "The shoryuken process was not running."
-      fi
+```bash
+chmod +x .platform/hooks/postdeploy/restart_shoryuken.sh
+chmod +x .platform/hooks/predeploy/mute_shoryuken.sh
 ```
 
-### Worker environment
-For information on deploying to a worker environment see the thread in https://github.com/phstc/shoryuken/issues/48
+---
+
+## Worker Environment
+
+For dedicated worker environments (no web tier), use a Worker Environment:
+
+1. Create a Worker environment in Elastic Beanstalk
+2. Configure the worker queue in the console
+3. Use a simple Procfile:
+
+```
+worker: bundle exec shoryuken -R -C config/shoryuken.yml
+```
+
+Note: Worker environments use SQS daemon, which may conflict with Shoryuken. Consider using a Web environment with `web=0` scaled down instead.
+
+---
+
+## Troubleshooting
+
+### Logs Location
+
+```
+/var/app/current/log/shoryuken.log
+/var/log/eb-engine.log
+```
+
+### View Logs
+
+```bash
+eb logs
+# or
+eb ssh
+tail -f /var/app/current/log/shoryuken.log
+```
+
+### Common Issues
+
+**Worker not starting:**
+- Check IAM permissions
+- Verify config file path
+- Check log file for errors
+
+**Out of memory:**
+- Reduce concurrency
+- Upgrade instance type
+- Check for memory leaks in jobs
+
+**Permission errors:**
+- Ensure hooks are executable
+- Check file ownership
+
+---
+
+## Related
+
+- [[Deployment]] - General deployment guide
+- [[Amazon SQS IAM Policy for Shoryuken]] - IAM permissions
+- [[Health Checks]] - Health monitoring
