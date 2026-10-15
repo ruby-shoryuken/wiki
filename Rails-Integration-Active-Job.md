@@ -53,6 +53,8 @@ end
 
 *Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html#send_message-instance_method)). Shoryuken will raise an exception if you attempt to schedule a job further into the future than this limit.
 
+*Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError` (since 7.0.1). With `retry_on` on a FIFO queue, set `wait: 0`.
+
 
 #### Active Job Queue Name Support
 
@@ -100,6 +102,21 @@ MyJob.set(message_group_id: 'abc123',
           })
      .perform_later(123, 'abc')
 ```
+
+#### FIFO deduplication
+
+For FIFO queues, the adapter derives a `message_deduplication_id` from the serialized job (without `job_id` and `enqueued_at`). So two enqueues of the same job class with the same arguments within the SQS 5-minute deduplication window collapse into one. To turn this off (since 7.0.3):
+
+```ruby
+# config/initializers/shoryuken.rb
+Shoryuken.active_job_fifo_message_deduplication = false
+```
+
+Then give a `message_deduplication_id` with `.set`, or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
+
+#### Shoryuken 7.0 features
+
+Shoryuken 7.0 adds bulk enqueuing with `ActiveJob.perform_all_later`, ActiveJob Continuations support and CurrentAttributes persistence. See [[Upgrading to 7.0]].
 
 ### How to use [`retry_on`](https://edgeguides.rubyonrails.org/active_job_basics.html#retrying-or-discarding-failed-jobs)
 

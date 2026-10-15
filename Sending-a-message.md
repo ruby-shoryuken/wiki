@@ -62,7 +62,7 @@ message = {
   message_body: job_args,
   message_attributes: {
     shoryuken_class: {
-      string_value: 'ActiveJob::QueueAdapters::ShoryukenAdapter::JobWrapper',
+      string_value: 'Shoryuken::ActiveJob::JobWrapper',
       data_type: "String"
     }
   }
@@ -73,12 +73,16 @@ Shoryuken::Client.queues(queue_name).send_message(message)
 
 ## Delaying a message
 
-You can delay a message up to 15 minutes.
+You can delay a message up to 15 minutes. A longer delay raises `Shoryuken::Errors::InvalidDelayError`.
 
 ```ruby
 MyWorker.perform_in(60, 'Pablo') # 60 seconds
-MyWorker.perform_at(Time.now, 'Pablo')
+MyWorker.perform_at(Time.now + 300, 'Pablo')
 ```
+
+## FIFO queues
+
+For a FIFO queue, Shoryuken sets the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the body when you do not pass them (turn off the second with `Shoryuken.fifo_message_deduplication = false`). See [[FIFO Queues]].
 
 ## AWS credentials
 

@@ -1,11 +1,11 @@
-For retrieving which worker to call for each queue/message, Shoryuken uses [`DefaultWorkerRegistry`](https://github.com/phstc/shoryuken/blob/master/lib/shoryuken/default_worker_registry.rb), this is the default behavior, but if you have a special need, you can set a custom one.
+For retrieving which worker to call for each queue/message, Shoryuken uses [`DefaultWorkerRegistry`](https://github.com/ruby-shoryuken/shoryuken/blob/main/lib/shoryuken/default_worker_registry.rb), this is the default behavior, but if you have a special need, you can set a custom one.
 
 ```ruby
 class CustomWorkerRegistry
   def fetch_worker(queue, message)
     ...
     worker_class = begin
-                     worker_class.constantize
+                     Shoryuken::Helpers::StringUtils.constantize(worker_class)
                    rescue
                      [your Worker here]
                    end
