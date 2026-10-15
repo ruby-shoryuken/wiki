@@ -1,6 +1,7 @@
 ### Web server environment 
 To restart (or just start) Shoryuken on each deployment to Beanstalk, prepare the configuration files as described below. 
 Make sure the selected EC2 instance type has enough memory to ensure the functioning of both the web server and Shoryuken.
+The instance role needs the SQS permissions listed in [[Amazon SQS IAM Policy for Shoryuken]].
 
 #### Amazon Linux 2 and 2023 with Procfile
 
