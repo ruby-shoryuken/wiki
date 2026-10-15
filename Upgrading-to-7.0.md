@@ -183,6 +183,8 @@ ActiveJob.perform_all_later(
 
 This is significantly more efficient than enqueueing jobs individually.
 
+See [[Bulk Enqueuing]] for details, including how it handles delayed jobs.
+
 ### ActiveJob Continuations Support
 
 **New in Rails 8.1+:** Shoryuken now supports ActiveJob Continuations, allowing jobs to checkpoint their progress and resume after interruption.
