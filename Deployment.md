@@ -8,7 +8,7 @@ worker: bundle exec shoryuken ...
 
 Then:
 
-```shel
+```shell
 heroku ps:scale worker=1
 ```
 
@@ -33,3 +33,30 @@ See [.ebextension file here](https://github.com/ruby-shoryuken/shoryuken/wiki/AW
 ## systemd integration
 
 See [systemd integration](https://github.com/ruby-shoryuken/shoryuken/issues/320#issuecomment-282290069).
+
+A minimal unit file:
+
+```ini
+# /etc/systemd/system/shoryuken.service
+[Unit]
+Description=Shoryuken
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/myapp/current
+Environment=RAILS_ENV=production
+ExecStart=/usr/local/bin/bundle exec shoryuken -R -C config/shoryuken.yml
+# systemd stops with SIGTERM: Shoryuken waits up to `timeout` seconds for busy workers
+TimeoutStopSec=30
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to USR1: USR1 makes Shoryuken exit (see [[Signals]]).
+
+## Shutdown
+
+Every platform above stops the process with a signal. TERM gives busy workers up to `timeout` seconds (default `8`) before they are killed; USR1 stops fetching, waits for busy workers and exits. Set `timeout` below the time your platform waits before it kills the process. See [[Signals]] and [[Shoryuken options]].
