@@ -1,5 +1,3 @@
-# Getting Started
-
 ## Prerequisites
 
 Shoryuken requires:
@@ -22,36 +20,15 @@ Run bundler:
 bundle install
 ```
 
-## AWS Configuration
+## AWS configuration
 
-Shoryuken uses the AWS SDK for Ruby. Configure your AWS credentials using one of these methods:
-
-1. **Environment variables** (recommended for development):
-   ```shell
-   export AWS_ACCESS_KEY_ID=your_access_key
-   export AWS_SECRET_ACCESS_KEY=your_secret_key
-   export AWS_REGION=us-east-1
-   ```
-
-2. **AWS credentials file** (`~/.aws/credentials`):
-   ```ini
-   [default]
-   aws_access_key_id = your_access_key
-   aws_secret_access_key = your_secret_key
-   ```
-
-3. **IAM role** (recommended for production on AWS):
-   - EC2 instance profile
-   - ECS task role
-   - EKS service account
-
-See [[Configure the AWS Client]] for more details.
+Shoryuken uses the AWS SDK for Ruby and its usual credential sources. See [[Configure the AWS Client]].
 
 ---
 
 ## Plain Ruby
 
-### 1. Create a Worker
+### 1. Create a worker
 
 ```ruby
 # hello_worker.rb
@@ -66,7 +43,7 @@ class HelloWorker
 end
 ```
 
-### 2. Create a Queue
+### 2. Create a queue
 
 ```shell
 bundle exec shoryuken sqs create hello
@@ -78,9 +55,10 @@ bundle exec shoryuken sqs create hello
 bundle exec shoryuken -q hello -r ./hello_worker.rb
 ```
 
-### 4. Enqueue a Message
+### 4. Enqueue a message
 
 ```ruby
+require 'shoryuken'
 require_relative 'hello_worker'
 
 HelloWorker.perform_async('Ken')
@@ -90,20 +68,11 @@ HelloWorker.perform_async('Ken')
 
 ## Rails
 
-### 1. Create an ApplicationJob
-
-```ruby
-# app/jobs/application_job.rb
-class ApplicationJob < ActiveJob::Base
-  # Common job configuration can go here
-end
-```
-
-### 2. Create a Job
+### 1. Create a job
 
 ```ruby
 # app/jobs/hello_job.rb
-class HelloJob < ApplicationJob
+class HelloJob < ActiveJob::Base
   queue_as 'hello'
 
   def perform(name)
@@ -112,13 +81,13 @@ class HelloJob < ApplicationJob
 end
 ```
 
-### 3. Create a Queue
+### 2. Create a queue
 
 ```shell
 bundle exec shoryuken sqs create hello
 ```
 
-### 4. Configure the Queue Adapter
+### 3. Configure the queue adapter
 
 ```ruby
 # config/application.rb
@@ -129,35 +98,15 @@ module YourApp
 end
 ```
 
-### 5. Create a Shoryuken Initializer (Optional)
-
-```ruby
-# config/initializers/shoryuken.rb
-Shoryuken.configure_server do |config|
-  # Replace Rails logger so messages are logged to Shoryuken's log
-  Rails.logger = Shoryuken::Logging.logger
-  Rails.logger.level = Rails.application.config.log_level
-
-  # Add server middleware
-  # config.server_middleware do |chain|
-  #   chain.add MyMiddleware
-  # end
-end
-
-Shoryuken.configure_client do |config|
-  # Client-side configuration (used when enqueuing jobs)
-end
-```
-
-### 6. Start Shoryuken
+### 4. Start Shoryuken
 
 ```shell
 bundle exec shoryuken -q hello -R
 ```
 
-The `-R` flag loads your Rails application with eager loading on, so your jobs are loaded before Shoryuken starts.
+The `-R` flag loads your Rails application. For middleware and other settings, see the initializer in [[Rails Integration Active Job]].
 
-### 7. Enqueue a Message
+### 5. Enqueue a message
 
 ```ruby
 HelloJob.perform_later('Ken')
@@ -165,7 +114,7 @@ HelloJob.perform_later('Ken')
 
 ---
 
-## Configuration File
+## Configuration file
 
 For more complex setups, create a configuration file:
 
@@ -186,11 +135,3 @@ bundle exec shoryuken -R -C config/shoryuken.yml
 
 See [[Shoryuken options]] for all available configuration options.
 
----
-
-## Next Steps
-
-- [[Rails Integration Active Job]] - Full ActiveJob integration guide
-- [[Worker options]] - Configure worker behavior
-- [[Middleware]] - Add cross-cutting concerns
-- [[Deployment]] - Deploy to production

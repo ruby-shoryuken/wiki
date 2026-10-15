@@ -59,7 +59,7 @@ All Shoryuken errors now inherit from `Shoryuken::Errors::BaseError`:
 - `Shoryuken::Errors::InvalidWorkerRegistrationError` - Raised for worker registration conflicts
 - `Shoryuken::Errors::InvalidPollingStrategyError` - Raised for invalid polling strategy configuration
 - `Shoryuken::Errors::InvalidEventError` - Raised for invalid lifecycle event names
-- `Shoryuken::Errors::InvalidDelayError` - Raised when delays exceed SQS 15-minute maximum
+- `Shoryuken::Errors::InvalidDelayError` - Raised by `perform_in` and `perform_at` when a delay exceeds the SQS 15-minute maximum (the ActiveJob adapter still raises a `RuntimeError` for this)
 - `Shoryuken::Errors::FifoDelayNotSupportedError` - Raised when a delay is used with a FIFO queue (since 7.0.1)
 - `Shoryuken::Errors::InvalidArnError` - Raised for invalid ARN format
 
@@ -252,7 +252,7 @@ This ensures logging context doesn't leak between fibers in the same thread, whi
 
 ## Changes in 7.0.x Patch Releases
 
-The 7.0.x patch releases are bug-fix releases. They also add these opt-in settings and options. All defaults keep the 7.0.0 behavior.
+The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings and options below, whose defaults keep the 7.0.0 behavior. One change is not opt-in: since 7.0.1 the FIFO delay error is `Shoryuken::Errors::FifoDelayNotSupportedError` instead of `ArgumentError`, so a `rescue ArgumentError` written for 7.0.0 no longer catches it. Rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead.
 
 - **7.0.1:** The `non_retryable_exceptions` worker option deletes a message at once when the worker raises one of the listed exceptions, instead of retrying it ([#958](https://github.com/ruby-shoryuken/shoryuken/pull/958)). See [[Worker options]].
 - **7.0.1:** The FIFO delay error is now `Shoryuken::Errors::FifoDelayNotSupportedError` (see [FIFO Queue Delay Validation](#fifo-queue-delay-validation)).

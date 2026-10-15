@@ -1,6 +1,6 @@
 You can tell Shoryuken to load your Rails application by passing the `-R` or `--rails` flag to the `shoryuken` command.
 
-If you load Rails, Shoryuken eager loads the application, so workers in `app/jobs` are loaded. This means you don't need to require them explicitly with `-r`.
+If you load Rails, assuming your workers are located in the `app/jobs` directory, they will be auto-loaded. This means you don't need to require them explicitly with `-r`.
 
 For middleware and other configurations, you might want to create an initializer:
 

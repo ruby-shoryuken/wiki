@@ -1,5 +1,3 @@
-# Shoryuken Options
-
 Shoryuken can be configured via CLI options, a YAML configuration file, or Ruby code.
 
 ```shell
@@ -20,7 +18,7 @@ When using a configuration file, you must pass it via CLI `shoryuken -C config/s
 
 Some options available in the configuration file are not available in the CLI (for example `groups` and `aws`).
 
-## CLI Options
+## CLI options
 
 | Option | Description |
 |--------|-------------|
@@ -51,7 +49,7 @@ shoryuken -R -C config/shoryuken.yml -d -L log/shoryuken.log -P tmp/pids/shoryuk
 
 To list all CLI options: `shoryuken help start`.
 
-## Configuration File Options
+## Configuration file options
 
 ### concurrency
 
@@ -189,7 +187,7 @@ queues:
   - <%= "#{Rails.env}_default" %>
 ```
 
-## Options Set in Ruby
+## Options set in Ruby
 
 These options have no CLI flag or YAML key. Set them in an initializer (for example `config/initializers/shoryuken.rb`).
 
@@ -268,10 +266,3 @@ Shoryuken.add_queue('payments', 1, 'critical')
 
 `add_group` also takes `delay:` and `polling_strategy:` keyword arguments.
 
-## Related
-
-- [[Worker options]] - Per-worker configuration
-- [[Processing Groups]] - Queue isolation
-- [[Polling strategies]] - Queue polling behavior
-- [[Receive Message options]] - Options for the SQS `receive_message` call
-- [[Configure the AWS Client]] - AWS credentials

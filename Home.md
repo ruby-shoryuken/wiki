@@ -1,10 +1,8 @@
-# Shoryuken Wiki
-
 Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 **Requirements (7.0):** Ruby 3.2+ | Rails 7.2+ (for ActiveJob) | aws-sdk-sqs >= 1.66
 
-## Getting Started
+## Getting started
 
 - [[Getting Started]] - Installation and basic setup
 - [[Configure the AWS Client]] - AWS credentials configuration
@@ -14,7 +12,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 - [[Rails Integration Active Job]] - ActiveJob adapter setup and usage
 
-## Workers & Queues
+## Workers & queues
 
 - [[Worker options]] - Worker configuration (`shoryuken_options`)
 - [[Shoryuken options]] - Global configuration and CLI options
@@ -24,7 +22,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 - [[Multiple ways of configuring queues in Shoryuken]] - Queue configuration options
 - [[Worker registry]] - Custom worker registration
 
-## Message Handling
+## Message handling
 
 - [[Sending a message]] - Enqueuing messages and jobs
 - [[Retrying a message]] - Retry strategies and exponential backoff
@@ -46,20 +44,20 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 - [[Amazon SQS IAM Policy for Shoryuken]] - IAM permissions
 - [[Shoryuken Serverless - SQS as an Event Source for Lambdas]]
 
-## Monitoring & Logging
+## Monitoring & logging
 
 - [[Logging]] - Configure logging and log levels
 - [[Sentry.io Integration]] - Error tracking with Sentry
 - [[Honeybadger Integration]] - Error tracking with Honeybadger
 
-## Testing & Development
+## Testing & development
 
 - [[Testing]] - Test strategies for Shoryuken workers
 - [[Shoryuken Inline adapter]] - Synchronous execution for testing
 - [[Using a local mock SQS server]] - Local development without real SQS
 - [[Enable hot reload for rails dev environment]] - Development auto-reload
 
-## Migration & Upgrade
+## Migration & upgrade
 
 - [[Upgrading to 7.0]] - Upgrading to Shoryuken 7.0
 - [[From Sidekiq to Shoryuken]] - Migration guide from Sidekiq
@@ -69,7 +67,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 - [[ERROR: No worker found for queue]]
 
-## Quick Links
+## Quick links
 
 - [GitHub Repository](https://github.com/ruby-shoryuken/shoryuken)
 - [RubyGems](https://rubygems.org/gems/shoryuken)
