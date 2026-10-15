@@ -199,6 +199,8 @@ When Shoryuken receives a shutdown signal, the `stopping?` method in the ActiveJ
 
 **Usage:** Refer to Rails PR [#55127](https://github.com/rails/rails/pull/55127) for details on implementing job continuations.
 
+See [[ActiveJob Continuations]].
+
 ### CurrentAttributes Persistence
 
 **New:** Rails `ActiveSupport::CurrentAttributes` can now flow from enqueue to job execution.
