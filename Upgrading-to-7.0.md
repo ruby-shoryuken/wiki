@@ -16,6 +16,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
   - [ActiveJob Continuations Support](#activejob-continuations-support)
   - [CurrentAttributes Persistence](#currentattributes-persistence)
   - [Fiber-Local Storage for Logging](#fiber-local-storage-for-logging)
+- [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases)
 - [Upgrade Steps](#upgrade-steps)
 
 ## Ruby and Rails Version Requirements
@@ -59,6 +60,7 @@ All Shoryuken errors now inherit from `Shoryuken::Errors::BaseError`:
 - `Shoryuken::Errors::InvalidPollingStrategyError` - Raised for invalid polling strategy configuration
 - `Shoryuken::Errors::InvalidEventError` - Raised for invalid lifecycle event names
 - `Shoryuken::Errors::InvalidDelayError` - Raised when delays exceed SQS 15-minute maximum
+- `Shoryuken::Errors::FifoDelayNotSupportedError` - Raised when a delay is used with a FIFO queue (since 7.0.1)
 - `Shoryuken::Errors::InvalidArnError` - Raised for invalid ARN format
 
 #### Migration Guide
@@ -101,7 +103,7 @@ This class was unused since the Celluloid removal in 2016. It was originally use
 
 ### FIFO Queue Delay Validation
 
-**Breaking:** Using `delay` with FIFO queues now raises an `ArgumentError`.
+**Breaking:** Using `delay` with FIFO queues now raises an error. In 7.0.0 it is an `ArgumentError`. Since 7.0.1 it is `Shoryuken::Errors::FifoDelayNotSupportedError` ([#957](https://github.com/ruby-shoryuken/shoryuken/pull/957)).
 
 FIFO queues do not support per-message `DelaySeconds`. Previously, this would cause confusing AWS errors, especially with ActiveJob's `retry_on` (Rails 6.1+ defaults to `wait: 3.seconds`).
 
@@ -113,9 +115,10 @@ MyJob.set(wait: 3.seconds).perform_later
 
 **After (Shoryuken 7.0):**
 ```ruby
-# Raises clear ArgumentError with guidance
+# Raises a clear error with guidance
 MyJob.set(wait: 3.seconds).perform_later
-# => ArgumentError: FIFO queues do not support DelaySeconds. Use wait: 0
+# => Shoryuken::Errors::FifoDelayNotSupportedError: FIFO queue 'my_queue.fifo' does not support
+#    per-message delays. When using ActiveJob retry_on with FIFO queues, set `wait: 0`.
 ```
 
 **Action Required:**
@@ -247,6 +250,20 @@ This ensures logging context doesn't leak between fibers in the same thread, whi
 - **YARD Documentation:** Comprehensive YARD documentation with 100% coverage
 - **Trusted Publishing:** Improved gem security with trusted publishing ([#840](https://github.com/ruby-shoryuken/shoryuken/pull/840))
 
+## Changes in 7.0.x Patch Releases
+
+The 7.0.x patch releases are bug-fix releases. They also add these opt-in settings and options. All defaults keep the 7.0.0 behavior.
+
+- **7.0.1:** The `non_retryable_exceptions` worker option deletes a message at once when the worker raises one of the listed exceptions, instead of retrying it ([#958](https://github.com/ruby-shoryuken/shoryuken/pull/958)). See [[Worker options]].
+- **7.0.1:** The FIFO delay error is now `Shoryuken::Errors::FifoDelayNotSupportedError` (see [FIFO Queue Delay Validation](#fifo-queue-delay-validation)).
+- **7.0.2:** A custom polling strategy can be set per processing group with `Shoryuken.add_group(group, concurrency, polling_strategy: MyStrategy)`. See [[Polling strategies]].
+- **7.0.3:** `Shoryuken.active_job_fifo_message_deduplication = false` stops the ActiveJob adapter from generating a `message_deduplication_id` for FIFO queues. Default: `true`.
+- **7.0.4:** `Shoryuken.fifo_message_deduplication = false` stops `perform_async`, `Queue#send_message` and `Queue#send_messages` from generating a `message_deduplication_id` (a SHA-256 of the body) for FIFO queues. Default: `true`.
+
+With these settings at `true`, two sends of an identical body to a FIFO queue within the SQS 5-minute deduplication window are deduplicated, and SQS drops the second one. If you set them to `false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
+
+For the full list of fixes, see the [CHANGELOG](https://github.com/ruby-shoryuken/shoryuken/blob/main/CHANGELOG.md).
+
 ## Upgrade Steps
 
 ### 1. Check Ruby and Rails Versions
@@ -269,10 +286,12 @@ bundle exec rails -v
 gem 'shoryuken', '~> 7.0'
 ```
 
+Shoryuken 7.0 requires `aws-sdk-sqs` 1.66.0 or later.
+
 ### 3. Update Dependencies
 
 ```bash
-bundle update shoryuken
+bundle update shoryuken aws-sdk-sqs
 ```
 
 ### 4. Update Error Handling
