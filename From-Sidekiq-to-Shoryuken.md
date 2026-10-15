@@ -103,3 +103,21 @@ bundle exec sidekiq -r ./my_worker.rb -q my_queue
 ```shell
 bundle exec shoryuken -r ./my_worker.rb -q my_queue
 ```
+
+## ActiveJob
+
+If your jobs are ActiveJob jobs, change only the queue adapter. The job classes stay the same:
+
+```ruby
+# config/application.rb
+config.active_job.queue_adapter = :shoryuken
+```
+
+See [[Rails Integration Active Job]].
+
+## Things to check
+
+* **Queues must exist.** Shoryuken does not create queues. At startup it raises `Shoryuken::Errors::QueueNotFoundError` for a configured queue that does not exist. Create them with `shoryuken sqs create QUEUE-NAME` or in AWS.
+* **Retries.** A failed message comes back after the queue's visibility timeout. Use [`retry_intervals`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) for backoff and [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) to drop messages that must not be retried. See [[Retrying a message]].
+* **Delays.** `perform_in` and `perform_at` accept up to 15 minutes. See [[Sending a message]].
+* **IAM.** The process needs SQS permissions. See [[Amazon SQS IAM Policy for Shoryuken]].
