@@ -56,3 +56,34 @@ The queue weight sets the priority: the queue with the highest weight comes firs
 While `queue1` has messages, Shoryuken won't try to fetch message from `queue2` or `queue3`.
 
 `delay` is also supported for `StrictPriority`. With `delay` set to 0, Shoryuken does not pause empty queues: every iteration causes Shoryuken to try the queues in priority order, stopping once it finds a job.
+
+## Custom polling strategy
+
+Subclass `Shoryuken::Polling::BaseStrategy`. Shoryuken creates one instance per group with `new(queues, delay)`. `queues` holds each queue name once per unit of weight.
+
+```ruby
+class MyStrategy < Shoryuken::Polling::BaseStrategy
+  def initialize(queues, delay = nil)
+    @queues = queues.uniq
+    @delay = delay
+  end
+
+  # Return the next queue to fetch from, or nil to wait
+  def next_queue
+    Shoryuken::Polling::QueueConfiguration.new(@queues.first, {})
+  end
+
+  # Called after each fetch with the number of messages received
+  def messages_found(queue, messages_found); end
+
+  # Optional: called after a message is processed
+  def message_processed(queue); end
+
+  # Return the queues that are not paused
+  def active_queues
+    @queues
+  end
+end
+```
+
+Set it by class name in `shoryuken.yml` (`polling_strategy: MyStrategy`), or pass the class to `Shoryuken.add_group('group1', 10, polling_strategy: MyStrategy)`.

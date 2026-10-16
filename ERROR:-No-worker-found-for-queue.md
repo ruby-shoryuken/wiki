@@ -12,3 +12,4 @@ bundle exec shoryuken \
         -d
 ```
 
+Also check that the queue name in `shoryuken.yml` matches the worker's `shoryuken_options queue:`. When ActiveJob is not loaded, Shoryuken logs `No worker supplied for <queue>` at start for each queue that has no worker.
