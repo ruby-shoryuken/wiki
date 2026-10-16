@@ -12,10 +12,18 @@ class MyWorker
 end
 ```
 
-The example above will cause the message to be available again in case the `do_something` raises an exception. When [auto_delete](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#auto_delete) is set to `true`, Shoryuken will auto delete the message in case of the worker doesn't raise an exception.
+The example above will cause the message to be available again in case the `do_something` raises an exception. When [auto_delete](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#auto_delete) is set to `true`, Shoryuken deletes the message only when the worker does not raise an exception.
 
 Check the [Dead Letter Queue documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) to prevent the message being processed _forever_.
 
-## Exponential backoff 
+To make the message visible again sooner, set a shorter visibility timeout before you raise:
 
-Shoryuken also supports exponential backoff, have a look at [retry_intervals](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) for more details.
+```ruby
+sqs_msg.visibility_timeout = 0 # visible again at once
+```
+
+## Exponential backoff
+
+Shoryuken also supports exponential backoff. See [retry_intervals](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals).
+
+To delete a message instead of retrying it for some exceptions, see [non_retryable_exceptions](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions).
