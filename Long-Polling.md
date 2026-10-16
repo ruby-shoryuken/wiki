@@ -1,4 +1,4 @@
-By default Shoryuken does not set `wait_time_seconds`, so SQS uses the queue's `ReceiveMessageWaitTimeSeconds` attribute. To use [Long Polling](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html) for every queue, configure it as follows:
+By default Shoryuken does not set `wait_time_seconds`, so SQS uses the queue's `ReceiveMessageWaitTimeSeconds` attribute. To use [Long Polling](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html) for the `default` group, configure it as follows:
 
 ```ruby
 # config/initializers/shoryuken.rb

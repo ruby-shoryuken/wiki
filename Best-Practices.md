@@ -8,7 +8,3 @@ Some references on FIFO queues:
 
 * [[FIFO Queues]]
 * [Using Ruby and Amazon SQS FIFO Queues · Pablo Cantero](http://www.pablocantero.com/blog/2017/08/06/using-ruby-and-amazon-sqs-fifo-queues/)
-
-## Size the database pool for your concurrency
-
-Each processor thread can hold a database connection while it runs a job. Set the ActiveRecord `pool` to at least the `concurrency` of the process (the sum of all group concurrencies, see [[Processing Groups]]). Shoryuken returns the connections to the pool after each job (see [[Middleware]]).

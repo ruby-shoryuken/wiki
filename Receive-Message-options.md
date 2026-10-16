@@ -15,12 +15,12 @@ For other [groups](https://github.com/ruby-shoryuken/shoryuken/wiki/Processing-G
 Shoryuken.sqs_client_receive_message_opts[:group_name] = { wait_time_seconds: 20 }
 ```
 
-You can also set it per queue. Queue options take precedence over group options.
+You can also set it per queue. A queue entry replaces the group entry; the two are not merged.
 
 ```ruby
 Shoryuken.sqs_client_receive_message_opts['queue-name'] = { wait_time_seconds: 20 }
 ```
 
-`max_number_of_messages` can only lower the batch size. Shoryuken fetches at most 10 messages, no more than the free processors, and 1 for a FIFO queue without `batch: true`. Shoryuken always sets `attribute_names` and `message_attribute_names` to `All`.
+`max_number_of_messages` can only lower the batch size. Shoryuken fetches at most 10 messages, and 1 for a FIFO queue without `batch: true`. For a worker without `batch: true`, it also fetches no more than the free processors. Shoryuken always sets `attribute_names` and `message_attribute_names` to `All`.
 
 See [API Reference/ReceiveMessage](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ReceiveMessage.html).
