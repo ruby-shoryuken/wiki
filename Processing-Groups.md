@@ -10,7 +10,7 @@ queues:
   - queue3
 ```
 
-Shoryuken will fetch messages from `queue1`, then `queue2`, then `queue3`, then repeat. See [Polling strategies](https://github.com/phstc/shoryuken/wiki/Polling-strategies) for more information.
+Shoryuken will fetch messages from `queue1`, then `queue2`, then `queue3`, then repeat. See [Polling strategies](https://github.com/ruby-shoryuken/shoryuken/wiki/Polling-strategies) for more information.
 
 If you don't want to wait on fetching for `queue1` to fetch for `queue2`, you can move them into separate groups:
 

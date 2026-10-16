@@ -120,4 +120,4 @@ Shoryuken 7.0 adds bulk enqueuing with `ActiveJob.perform_all_later`, ActiveJob 
 
 ### How to use [`retry_on`](https://edgeguides.rubyonrails.org/active_job_basics.html#retrying-or-discarding-failed-jobs)
 
-Please follow the steps detailed [here](https://github.com/phstc/shoryuken/issues/553#issuecomment-465813111) to make `retry_on` work with Shoryuken.
+Please follow the steps detailed [here](https://github.com/ruby-shoryuken/shoryuken/issues/553#issuecomment-465813111) to make `retry_on` work with Shoryuken.

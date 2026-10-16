@@ -1,4 +1,4 @@
-*Note:* `shoryuken_options` is only available in Shoryuken workers. It isn't supported in [Active Job jobs](https://github.com/phstc/shoryuken/wiki/Rails-Integration-Active-Job).
+*Note:* `shoryuken_options` is only available in Shoryuken workers. It isn't supported in [Active Job jobs](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job).
 
 ### queue
 
@@ -58,7 +58,7 @@ class KeenIOWorker
 end
 ```
 
-If you are using a custom middleware, check [this article](https://github.com/phstc/shoryuken/wiki/Middleware#be-careful-with-batchable-workers), the `sqs_msg` and `body` are arrays when `batch=true`.
+If you are using a custom middleware, check [[Middleware]], the `sqs_msg` and `body` are arrays when `batch=true`.
 
 Another important observation regarding batchable workers is if one of your messages causes an exception, consequently `auto_delete` won't be executed for any message.
 
@@ -87,7 +87,7 @@ When it's enabled, 5 seconds before the default visibility timeout expires, Shor
 > Be generous while configuring the default visibility_timeout for a queue. If your worker in the worst case takes 2 minutes to consume a message, set the visibility_timeout to at least 4 minutes. It doesn't hurt and it will be better than having the same message being consumed more than the expected.
 > http://www.pablocantero.com/blog/2014/11/29/sqs-to-the-rescue/
 
-*Note:* This feature isn't supported when using [`batch=true`](https://github.com/phstc/shoryuken/wiki/Worker-options#batch).
+*Note:* This feature isn't supported when using [`batch=true`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch).
 
 
 ### retry_intervals
@@ -98,7 +98,7 @@ If a worker raises an exception while consuming a message, and does not delete t
 
 But if you want to increase or decrease the next time a failing message will be available to be consumed again, you can use `retry_intervals` to implement an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff).
 
-*Note:* This feature isn't supported when using [`batch=true`](https://github.com/phstc/shoryuken/wiki/Worker-options#batch).
+*Note:* This feature isn't supported when using [`batch=true`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch).
 
 ```ruby
 shoryuken_options retry_intervals: [300, 1200, 3600] # 5.minutes, 20.minutes and 1.hour

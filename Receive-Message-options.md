@@ -9,7 +9,7 @@ Shoryuken.sqs_client_receive_message_opts = {
 
 this configuration applies to the 'default' group.
 
-For other [groups](https://github.com/phstc/shoryuken/wiki/Processing-Groups) you need to set them per group.
+For other [groups](https://github.com/ruby-shoryuken/shoryuken/wiki/Processing-Groups) you need to set them per group.
 ```ruby
 Shoryuken.sqs_client_receive_message_opts['group-name'] = { wait_time_seconds: 20 }
 ```

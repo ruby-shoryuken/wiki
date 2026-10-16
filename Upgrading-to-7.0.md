@@ -183,6 +183,8 @@ ActiveJob.perform_all_later(
 
 This is significantly more efficient than enqueueing jobs individually.
 
+See [[Bulk Enqueuing]] for details, including how it handles delayed jobs.
+
 ### ActiveJob Continuations Support
 
 **New in Rails 8.1+:** Shoryuken now supports ActiveJob Continuations, allowing jobs to checkpoint their progress and resume after interruption.
@@ -197,9 +199,13 @@ When Shoryuken receives a shutdown signal, the `stopping?` method in the ActiveJ
 
 **Usage:** Refer to Rails PR [#55127](https://github.com/rails/rails/pull/55127) for details on implementing job continuations.
 
+See [[ActiveJob Continuations]].
+
 ### CurrentAttributes Persistence
 
 **New:** Rails `ActiveSupport::CurrentAttributes` can now flow from enqueue to job execution.
+
+See [[CurrentAttributes]] for details.
 
 This feature automatically serializes current attributes into the job payload when enqueuing and restores them before execution.
 

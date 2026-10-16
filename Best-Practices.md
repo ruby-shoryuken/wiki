@@ -8,5 +8,5 @@ If idempotency is not an option in your application, have a look at [FIFO queues
 
 Some references on FIFO queues:
 
-* [FIFO Queues · phstc/shoryuken Wiki · GitHub](https://github.com/phstc/shoryuken/wiki/FIFO-Queues)
+* [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues)
 * [Using Ruby and Amazon SQS FIFO Queues · Pablo Cantero](http://www.pablocantero.com/blog/2017/08/06/using-ruby-and-amazon-sqs-fifo-queues/)
