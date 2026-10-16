@@ -37,7 +37,7 @@ queues:
   - [queue3, 1]
 ```
 
-When a queue gets empty, the queue will be paused for the number of seconds specified in `delay`. 
+When a fetch returns no messages, Shoryuken pauses the queue for `delay` seconds (default `0`).
 
 ## StrictPriority
 
@@ -46,11 +46,13 @@ When a queue gets empty, the queue will be paused for the number of seconds spec
 ```yaml
 polling_strategy: StrictPriority
 queues:
-  - queue1
-  - queue2
-  - queue3
+  - [queue1, 3]
+  - [queue2, 2]
+  - [queue3, 1]
 ```
+
+The queue weight sets the priority: the queue with the highest weight comes first.
 
 While `queue1` has messages, Shoryuken won't try to fetch message from `queue2` or `queue3`.
 
-`delay` is also supported for `StrictPriority`. With `delay` being 0, every iteration will cause Shoryuken to try the queues in priority order, stopping once it finds a job.
+`delay` is also supported for `StrictPriority`. With `delay` set to 0, Shoryuken does not pause empty queues: every iteration causes Shoryuken to try the queues in priority order, stopping once it finds a job.

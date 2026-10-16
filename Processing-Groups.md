@@ -10,7 +10,7 @@ queues:
   - queue3
 ```
 
-Shoryuken will fetch messages from `queue1`, then `queue2`, then `queue3`, then repeat. See [Polling strategies](https://github.com/ruby-shoryuken/shoryuken/wiki/Polling-strategies) for more information.
+Shoryuken will fetch messages from `queue1`, then `queue2`, then `queue3`, then repeat. See [[Polling strategies]].
 
 If you don't want to wait on fetching for `queue1` to fetch for `queue2`, you can move them into separate groups:
 
@@ -27,7 +27,7 @@ groups:
       - queue2
 ```
 
-Is that all? No, it is not! If you want to process only one message at time for `queue1`, but keeping `concurrency: 25` for `queue2` and `queue3`:
+To process only one message at a time for `queue1`, but keep `concurrency: 25` for `queue2` and `queue3`:
 
 ```yaml
 concurrency: 25
@@ -67,5 +67,7 @@ See [[Polling strategies]].
 # config/initializers/shoryuken.rb
 Shoryuken.sqs_client_receive_message_opts[:group1] = { wait_time_seconds: 20 }
 ```
+
+Group names from `shoryuken.yml` are Symbols, so use a Symbol key (`:group1`).
 
 See [[Long Polling]].

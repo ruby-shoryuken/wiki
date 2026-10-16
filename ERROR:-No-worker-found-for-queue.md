@@ -1,4 +1,4 @@
-If you use standard Shoryuken workers by `include Shoryuken::Worker`, and do not use ActiveJob, [a commit in version 3.2.3](https://github.com/ruby-shoryuken/shoryuken/commit/bbfa813939f88e4e64beb178df85d9868bbff15f) stopped eager loading the entire application. In this case, you must use the `-r` option to require your jobs specifically while starting Shoryuken.
+If you use standard Shoryuken workers by `include Shoryuken::Worker`, and do not use ActiveJob, [a commit in version 3.2.3](https://github.com/ruby-shoryuken/shoryuken/commit/bbfa813939f88e4e64beb178df85d9868bbff15f) stopped eager loading the entire application. With `-R`, Rails eager loads only when its `config.eager_load` is true. Otherwise, use the `-r` option to require your workers when you start Shoryuken.
 
 Example:
 

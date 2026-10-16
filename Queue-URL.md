@@ -1,4 +1,4 @@
-The preferable way of configuring queues in Shoryuken is using their names, but in case you want to configure their URLs, Shoryuken also supports that:
+The preferred way to configure queues in Shoryuken is by name. Shoryuken also accepts queue URLs and ARNs, for example `arn:aws:sqs:us-east-1:account-id:queue-name`:
 
 ### Via shoryuken.yml
 
@@ -28,4 +28,4 @@ class Worker
 end
 ```
 
-Configuring the queue URLs allows you to consume messages from multiple regions (and accounts).
+Queue URLs and ARNs let you consume messages from multiple regions (and accounts).

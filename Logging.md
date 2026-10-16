@@ -15,7 +15,7 @@ shoryuken -v
 
 ### Other levels 
 
-See [available levels](https://ruby-doc.org/stdlib-2.3.1/libdoc/logger/rdoc/Logger/Severity.html).
+See [available levels](https://ruby-doc.org/3.4/stdlibs/logger/Logger/Severity.html).
 
 ```ruby
 Shoryuken.logger.level = Logger::FATAL
@@ -26,3 +26,13 @@ Shoryuken.logger.level = Logger::FATAL
 ```shell
 shoryuken -L ./shoryuken.log
 ```
+
+## Using your own logger
+
+```ruby
+Shoryuken.logger = Rails.logger
+```
+
+## Log format
+
+The default formatter writes the UTC time, the process ID, the thread ID and the level. While a worker runs, each line also has `<worker>/<queue>/<message_id>`.

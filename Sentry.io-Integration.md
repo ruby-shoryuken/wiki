@@ -1,4 +1,5 @@
-Add below to some Rails initializer, example: config/initializers/shoryuken.rb
+Add this to a Rails initializer, for example `config/initializers/shoryuken.rb`:
+
 ```ruby
 # Shoryuken middleware to capture worker errors and send them to Sentry.io
 module Shoryuken
