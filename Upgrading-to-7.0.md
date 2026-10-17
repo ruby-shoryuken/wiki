@@ -258,13 +258,14 @@ This ensures logging context doesn't leak between fibers in the same thread, whi
 
 ## Changes in 7.0.x Patch Releases
 
-The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings and options below, whose defaults keep the 7.0.0 behavior. One change is not opt-in: since 7.0.1 the FIFO delay error is `Shoryuken::Errors::FifoDelayNotSupportedError` instead of `ArgumentError`, so a `rescue ArgumentError` written for 7.0.0 no longer catches it. Rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead.
+The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings and options below, whose defaults keep the 7.0.0 behavior. One change is not opt-in: since 7.0.1 the FIFO delay error is `Shoryuken::Errors::FifoDelayNotSupportedError` instead of `ArgumentError`, so a `rescue ArgumentError` written for 7.0.0 no longer catches it. Rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead. The option validation in the next release after 7.0.4 is not opt-in either.
 
 - **7.0.1:** The `non_retryable_exceptions` worker option deletes a message at once when the worker raises one of the listed exceptions, instead of retrying it ([#958](https://github.com/ruby-shoryuken/shoryuken/pull/958)). See [[Worker options]].
 - **7.0.1:** The FIFO delay error is now `Shoryuken::Errors::FifoDelayNotSupportedError` (see [FIFO Queue Delay Validation](#fifo-queue-delay-validation)).
 - **7.0.2:** A custom polling strategy can be set per processing group with `Shoryuken.add_group(group, concurrency, polling_strategy: MyStrategy)`. See [[Polling strategies]].
 - **7.0.3:** `Shoryuken.active_job_fifo_message_deduplication = false` stops the ActiveJob adapter from generating a `message_deduplication_id` for FIFO queues. Default: `true`.
 - **7.0.4:** `Shoryuken.fifo_message_deduplication = false` stops `perform_async`, `Queue#send_message` and `Queue#send_messages` from generating a `message_deduplication_id` (a SHA-256 of the body) for FIFO queues. Default: `true`.
+- **Next release after 7.0.4:** `shoryuken start` validates its options before it loads queues and workers. A configuration that started before can now fail to start with `Shoryuken::Errors::InvalidConfigurationError`, for example `concurrency: 0` or a malformed `queues` entry. Fix the option that the error names by its key path (`groups.<name>.<key>` inside a group). An unknown key only logs a warning: check it for a typo. See [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#option-validation).
 
 With these settings at `true`, two sends of an identical body to a FIFO queue within the SQS 5-minute deduplication window are deduplicated, and SQS drops the second one. If you set them to `false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
 
