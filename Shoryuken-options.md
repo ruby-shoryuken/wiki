@@ -83,7 +83,7 @@ Default: `25`
 
 Concurrency is the number of threads available for processing messages at a time. Be careful with changing this value, otherwise, you could crush your machine with I/O.
 
-*Note:* When accessing databases (`ActiveRecord`) or other resources with `pool` support in your workers, make sure to set `pool` size with the same value or higher than the concurrency set in Shoryuken.
+*Note:* When accessing databases (`ActiveRecord`) or other resources with `pool` support in your workers, make sure to set `pool` size with the same value or higher than the concurrency set in Shoryuken. With [[Processing Groups]], use the sum of all group concurrencies.
 
 ```yaml
 concurrency: <%= ENV.fetch('YOUR_CONCURRENCY', 25) %>
