@@ -51,7 +51,7 @@ To list all CLI options: `shoryuken help start`.
 
 ## Option validation
 
-This applies from the next release after 7.0.4. When `shoryuken start` loads its options, it checks the merged result of the configuration file, the CLI options and the options set in Ruby, before it loads queues and workers.
+This applies from the next release after 7.0.4. When `shoryuken start` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
 
 An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
 
@@ -61,7 +61,7 @@ An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the 
 | `delay` | `nil` or a number greater than or equal to 0. A numeric String such as `"2.5"` also works |
 | `timeout` | `nil` or a number greater than or equal to 0 |
 | `polling_strategy` | `nil`, a String or a Class |
-| `queues` | `nil` or an Array of queue names or `[name, weight]` pairs. A weight is `nil` or a number |
+| `queues` | `nil` or an Array of entries. An entry is a name, or an Array of a name and an optional weight. A name is a non-empty String or Symbol. A weight is `nil`, a number or a numeric String such as `"2"` (the CLI `-q queue1,2` gives one) |
 | `groups` | `nil`, a Hash or an Array of `[name, options]` pairs. Each group must be a Hash |
 | `thread_priority` | An Integer |
 | `aws`, `lifecycle_events` | A Hash |
