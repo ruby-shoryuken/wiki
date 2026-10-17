@@ -49,6 +49,32 @@ shoryuken -R -C config/shoryuken.yml -d -L log/shoryuken.log -P tmp/pids/shoryuk
 
 To list all CLI options: `shoryuken help start`.
 
+## Option validation
+
+This applies from the next release after 7.0.4. When `shoryuken start` loads its options, it checks the merged result of the configuration file, the CLI options and the options set in Ruby, before it loads queues and workers.
+
+An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
+
+| Option | Valid values |
+|--------|--------------|
+| `concurrency` | An Integer greater than 0. In a group, also `nil`, which uses the global value |
+| `delay` | `nil` or a number greater than or equal to 0. A numeric String such as `"2.5"` also works |
+| `timeout` | `nil` or a number greater than or equal to 0 |
+| `polling_strategy` | `nil`, a String or a Class |
+| `queues` | `nil` or an Array of queue names or `[name, weight]` pairs. A weight is `nil` or a number |
+| `groups` | `nil`, a Hash or an Array of `[name, options]` pairs. Each group must be a Hash |
+| `thread_priority` | An Integer |
+| `aws`, `lifecycle_events` | A Hash |
+| `config_file` | `nil`, a String or a Pathname |
+| `require`, `logfile`, `pidfile` | `nil` or a String |
+| `daemon`, `rails`, `verbose` | `nil` or a boolean |
+
+In a group, Shoryuken knows only `concurrency`, `delay`, `polling_strategy` and `queues`. Other group keys get the unknown-key warning below.
+
+An unknown key, global or in a group, is not rejected. Shoryuken logs a warning, for example `Unknown option 'concurency' is ignored; check it for a typo`. So keys of your own in the options keep working.
+
+For what to check before you upgrade, see [[Upgrading to 7.0]].
+
 ## Configuration file options
 
 ### concurrency
