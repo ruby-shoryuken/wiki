@@ -1,5 +1,26 @@
 *Note:* `shoryuken_options` is only available in Shoryuken workers. It isn't supported in [Active Job jobs](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job).
 
+## Option validation
+
+This applies from the next release after 7.0.4. `shoryuken_options` checks its keys when the worker class loads. An unknown key raises `Shoryuken::Errors::InvalidConfigurationError`, so the worker class does not load and `shoryuken start` stops before it processes messages. Only the keys are checked, not their values.
+
+```ruby
+class MyWorker
+  include Shoryuken::Worker
+
+  # Mistyped auto_delete: raises Shoryuken::Errors::InvalidConfigurationError
+  shoryuken_options queue: 'my_queue', auto_delte: true
+end
+```
+
+The error names the worker and the key, `MyWorker.auto_delte`, with the message `is not a known worker option`.
+
+The known worker option keys are [`queue`](#queue), `delete` (an alias of [`auto_delete`](#auto_delete)), [`auto_delete`](#auto_delete), [`auto_visibility_timeout`](#auto_visibility_timeout), [`retry_intervals`](#retry_intervals), [`batch`](#batch), [`body_parser`](#body_parser) and [`non_retryable_exceptions`](#non_retryable_exceptions).
+
+This applies to worker options only. An unknown global or group key only logs a warning (see [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#option-validation) in [[Shoryuken options]]). For what to check before you upgrade, see [[Upgrading to 7.0]].
+
+## Options
+
 ### queue
 
 Default: `default`
