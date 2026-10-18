@@ -128,6 +128,8 @@ shoryuken_options retry_intervals: ->(attempts) { calculate_next_attempt_interva
 
 `attempts` is the message's `ApproximateReceiveCount`. With an array, the first failure uses the first interval, the second failure the second one, and so on. When the attempts outnumber the intervals, Shoryuken uses the last interval. A lambda that returns `nil` (or `false`) does not retry the message with a backoff: it becomes visible again after the queue's visibility timeout.
 
+A failure that is retried with backoff is only logged at WARN level. It does not reach [`exception_handlers`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#exception_handlers).
+
 Keep in mind that Amazon SQS does not officially support exponential backoff, it's something implemented in Shoryuken using the [visibility Timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html), which can be extended to up to 12 hours. If your interval exceeds the 12 hour maximum, Shoryuken will automatically cap it to the maximum allowed.
 
 > https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ChangeMessageVisibility.html
