@@ -15,7 +15,7 @@ end
 
 The error names the worker and the key, `MyWorker.auto_delte`, with the message `is not a known worker option`.
 
-The known worker option keys are [`queue`](#queue), `delete` (same effect as [`auto_delete`](#auto_delete)), [`auto_delete`](#auto_delete), [`auto_visibility_timeout`](#auto_visibility_timeout), [`retry_intervals`](#retry_intervals), [`batch`](#batch), [`body_parser`](#body_parser) and [`non_retryable_exceptions`](#non_retryable_exceptions).
+The known worker option keys are [`queue`](#queue), `delete` (an alias of [`auto_delete`](#auto_delete)), [`auto_delete`](#auto_delete), [`auto_visibility_timeout`](#auto_visibility_timeout), [`retry_intervals`](#retry_intervals), [`batch`](#batch), [`body_parser`](#body_parser) and [`non_retryable_exceptions`](#non_retryable_exceptions).
 
 This applies to worker options only. An unknown global or group key only logs a warning (see [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#option-validation) in [[Shoryuken options]]). For what to check before you upgrade, see [[Upgrading to 7.0]].
 
