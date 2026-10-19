@@ -24,7 +24,7 @@ For the IAM actions that the commands need, see [[Amazon SQS IAM Policy for Shor
 shoryuken sqs ls [QUEUE-NAME-PREFIX]
 ```
 
-Prints a table of the queues whose names start with the prefix, or of the queues of the account without a prefix. It shows at most 1,000 queues, the SQS limit for one `ListQueues` call. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
+Prints a table of the queues whose names start with the prefix, or of all queues without a prefix. It shows at most 1,000 queues, the SQS limit for one `ListQueues` call. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
 
 | Option | Default | Effect |
 |--------|---------|--------|
