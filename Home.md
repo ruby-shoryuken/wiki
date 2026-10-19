@@ -46,6 +46,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 - [[Signals]] - Process control signals (TTIN, TSTP, USR1, TERM, INT)
 - [[Health Checks]] - `Shoryuken.healthy?` for liveness checks
 - [[Amazon SQS IAM Policy for Shoryuken]] - IAM permissions
+- [[Shoryuken SQS CLI]] - `shoryuken sqs` commands to list, dump, move and manage queues
 - [[Shoryuken Serverless - SQS as an Event Source for Lambdas]]
 
 ## Monitoring & logging
