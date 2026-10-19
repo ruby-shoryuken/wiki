@@ -33,7 +33,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 
 **Action Required:** If you're using Ruby 3.1 or older, you must upgrade to Ruby 3.2+ or remain on Shoryuken 6.x.
 
-*Note:* Shoryuken 7.0.x supports Ruby 3.2. Releases after 7.0.x require Ruby 3.3.0 or higher and support Ruby 3.3, 3.4 and 4.0. On Ruby 3.2, upgrade Ruby or stay on Shoryuken 7.0.x.
+**Note:** Shoryuken 7.0.x supports Ruby 3.2. Releases after 7.0.x require Ruby 3.3.0 or higher. On Ruby 3.2, upgrade Ruby or stay on Shoryuken 7.0.x.
 
 ### Minimum Rails Version: 7.2
 
