@@ -273,7 +273,14 @@ See [[Middleware]] and [[Lifecycle Events]].
 
 ### exception_handlers
 
-Each handler is called with the exception, the queue name and the SQS message when a worker raises. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
+Each handler is called with the exception, the queue name and the SQS message when an error raised while Shoryuken processes a message (body parsing, the server middleware or `perform`) is not handled by a server middleware (see [[Middleware]]). The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
+
+Some errors that a worker raises are handled by a server middleware, so the handlers are not called for them:
+
+- A failure that [`retry_intervals`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) retries with backoff. Shoryuken logs `Message <id> will attempt retry due to error: <message>` at WARN level and the backtrace at DEBUG level.
+- An error that [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
+
+With `retry_intervals` set, the handlers are still called when the message is not retried with backoff: the interval for the attempt is `nil` or `false` (for example, a lambda that returns `nil`), Shoryuken cannot change the message's visibility timeout, or the worker is a batch worker (backoff does not apply to batches).
 
 ```ruby
 Shoryuken.configure_server do |config|
