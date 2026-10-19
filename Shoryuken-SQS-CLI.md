@@ -24,7 +24,7 @@ For the IAM actions that the commands need, see [[Amazon SQS IAM Policy for Shor
 shoryuken sqs ls [QUEUE-NAME-PREFIX]
 ```
 
-Prints a table of the queues whose names start with the prefix, or of all queues without a prefix. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
+Prints a table of the queues whose names start with the prefix, or of the queues of the account without a prefix. It shows at most 1,000 queues, the SQS limit for one `ListQueues` call. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
 
 | Option | Default | Effect |
 |--------|---------|--------|
@@ -82,6 +82,8 @@ Receives the messages of the source queue and sends them to the target queue.
 
 - A queue with more messages than the SQS in-flight limit (about 120,000 for a standard queue, 20,000 for a FIFO queue) cannot be drained in one run. Run the command again for the rest. No message is lost.
 - On a FIFO queue, SQS returns no more messages of a message group while the group has messages in flight. So one run takes at most one receive (up to 10 messages) per message group. Run the command again until the queue is empty.
+
+A second `dump` of the same queue on the same day needs another `--path` (see [dump](#dump)).
 
 ## purge
 
