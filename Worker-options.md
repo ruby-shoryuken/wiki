@@ -2,7 +2,7 @@
 
 ## Option validation
 
-This applies from the next release after 7.0.4. `shoryuken_options` checks its keys when the worker class loads. An unknown key raises `Shoryuken::Errors::InvalidConfigurationError`, so the worker class does not load and `shoryuken start` stops before it processes messages. Only the keys are checked, not their values.
+`shoryuken_options` checks its keys when the worker class loads. An unknown key raises `Shoryuken::Errors::InvalidConfigurationError`, so the worker class does not load and `shoryuken start` stops before it processes messages. Only the keys are checked, not their values.
 
 ```ruby
 class MyWorker
