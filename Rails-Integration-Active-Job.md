@@ -120,4 +120,22 @@ Shoryuken 7.0 adds bulk enqueuing with `ActiveJob.perform_all_later`, ActiveJob 
 
 ### How to use [`retry_on`](https://edgeguides.rubyonrails.org/active_job_basics.html#retrying-or-discarding-failed-jobs)
 
-Please follow the steps detailed [here](https://github.com/ruby-shoryuken/shoryuken/issues/553#issuecomment-465813111) to make `retry_on` work with Shoryuken.
+`retry_on` sends a failed job again as a new message, up to `attempts` times. What happens after the last attempt depends on whether `retry_on` has a block:
+
+- **Without a block**, ActiveJob raises the error again. Shoryuken does not delete the message. With a [redrive policy](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) on the queue, SQS moves the message to the dead-letter queue (DLQ). Without one, SQS delivers the message again after each visibility timeout.
+- **With a block**, ActiveJob calls the block and does not raise the error. The error does not reach Shoryuken, the adapter deletes the message (`auto_delete`), and the message never goes to the DLQ.
+
+To send exhausted jobs to the DLQ, omit the block, or raise the error again in it:
+
+```ruby
+class MyJob < ActiveJob::Base
+  retry_on StandardError, attempts: 3 do |job, error|
+    Rails.logger.error("#{job.class.name} failed: #{error.message}")
+    raise error # Shoryuken keeps the message, so the redrive policy can move it to the DLQ
+  end
+
+  def perform
+    # ...
+  end
+end
+```
