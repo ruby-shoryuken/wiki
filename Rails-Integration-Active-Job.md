@@ -89,6 +89,14 @@ Rails.application.config.active_job.queue_adapter = ActiveJob::QueueAdapters::Sh
 MyModel.expensive_scope.select(:id).load.each { |obj| MyJob.perform_later(obj) }
 ```
 
+`ShoryukenConcurrentSendAdapter` sends each job to SQS in the background and returns at once. When Shoryuken stops, it waits for the sends that are still running, so jobs enqueued just before the stop (for example by a worker) reach SQS. This wait and the wait for busy workers together stay within `timeout` (see [[Signals]]). When the time runs out, Shoryuken logs `Timed out draining in-flight ActiveJob sends; some may not have been delivered`.
+
+To wait for the pending sends in your own shutdown sequence, call `wait_for_pending_sends`. It returns `true` when all sends finished, or `false` when the timeout (in seconds, optional) ran out first. A failed send counts as finished; it goes to the adapter's error handler, which by default logs a warning.
+
+```ruby
+ActiveJob::Base.queue_adapter.wait_for_pending_sends(5)
+```
+
 #### Set SQS SendMessage parameters with `.set`
 
 ```ruby
