@@ -7,6 +7,8 @@ Shoryuken traps the `INT`, `TERM`, `USR1`, `TSTP` and `TTIN` signals.
 | `USR1` | Graceful stop, then exit | Yes |
 | `TERM`, `INT` | Hard shutdown within `timeout` | Yes |
 
+When Shoryuken stops, a message that it has received but not started is made visible again at once, so another consumer can receive it.
+
 ## TTIN
 
 TTIN tells Shoryuken to log the backtraces of all threads in the process. Use it to find a hung or slow worker.
@@ -35,7 +37,7 @@ Shoryuken exits once everything is processed.
 kill -USR1 [shoryuken_pid]
 ```
 
-Since 7.0.3, the wait for busy workers in a graceful stop (USR1 and TSTP) is also limited by `timeout`: workers that do not finish within it are killed, so a hung worker cannot block the shutdown.
+The wait for busy workers in a graceful stop (USR1 and TSTP) is also limited by `timeout`: workers that do not finish within it are killed, so a hung worker cannot block the shutdown.
 
 ## TERM
 

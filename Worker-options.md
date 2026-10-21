@@ -128,7 +128,7 @@ shoryuken_options retry_intervals: [300, 1200, 3600] # 5.minutes, 20.minutes and
 shoryuken_options retry_intervals: ->(attempts) { calculate_next_attempt_interval(attempts) }
 ```
 
-`attempts` is the message's `ApproximateReceiveCount`. With an array, the first failure uses the first interval, the second failure the second one, and so on. When the attempts outnumber the intervals, Shoryuken uses the last interval. A lambda that returns `nil` (or `false`) does not retry the message with a backoff: it becomes visible again after the queue's visibility timeout.
+`attempts` is the message's `ApproximateReceiveCount`. With an array, the first failure uses the first interval, the second failure the second one, and so on. When the attempts outnumber the intervals, Shoryuken uses the last interval. A lambda that returns `nil` (or `false`) does not retry the message with a backoff: it becomes visible again after the queue's visibility timeout. A lambda that raises is handled the same way: Shoryuken logs `retry_intervals raised for <message id>: <error class>: <message>` and raises the worker's error again.
 
 A failure that is retried with backoff is logged and does not reach [`exception_handlers`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#exception_handlers).
 
@@ -142,7 +142,7 @@ Keep in mind that Amazon SQS does not officially support exponential backoff, it
 
 Default: `nil`
 
-Available since 7.0.1. When the worker raises one of these exceptions, Shoryuken logs a warning and deletes the message at once, instead of letting it be retried. It accepts an array of exception classes or a lambda that receives the exception and returns `true` for a non-retryable one.
+When the worker raises one of these exceptions, Shoryuken logs a warning and deletes the message at once, instead of letting it be retried. It accepts an array of exception classes or a lambda that receives the exception and returns `true` for a non-retryable one.
 
 ```ruby
 class MyWorker
