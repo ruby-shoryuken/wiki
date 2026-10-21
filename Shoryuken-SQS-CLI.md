@@ -45,7 +45,13 @@ Receives the messages of the queue and writes them to `<queue-name>-<date>.jsonl
 | `-p`, `--path` | `./` | The directory for the dump file |
 | `-d`, `--delete` | `true` | Deletes the dumped messages from the queue. Use `--no-delete` to keep them |
 
-If the dump file already exists, `dump` fails with `File <path> already exists`. So you can dump a queue only once per day into the same directory. Use another `--path` for a second dump.
+`--number` must be at least 1, else `dump` fails with `Number of messages must be at least 1, got <n>`. `--path` must be an existing directory that you can write to and enter, else `dump` fails with `Path <path> is not a directory` or `Path <path> is not writable`. `dump` checks both before it receives any message.
+
+If the dump file already exists, `dump` fails with `File <path> already exists`. A dump that fails or is stopped while it writes removes its file. Only a completed dump blocks the file name. So you can dump a queue only once per day into the same directory. Use another `--path` for a second dump.
+
+Binary message attribute values are written in base64, with `"binary_value_encoding": "base64"` next to the value.
+
+When a delete from the queue fails, `dump` prints `Could not delete <id>, code: <code>, message: <message>, sender_fault: <sender_fault>` for each message. It keeps the dump file, then fails with `Could not delete <n> dumped messages from <queue>` (exit status 1).
 
 An empty queue gives `Queue <name> is empty`, and no file is written.
 
@@ -61,7 +67,13 @@ Sends the messages of a dump file to the queue. It does not change the file.
 |--------|---------|--------|
 | `-n`, `--batch_size` | `10` | The maximum number of messages in one send batch |
 
-Shoryuken also keeps each batch within the SQS batch payload limit (1 MiB). Check the target queue after `mv` or `requeue`.
+Shoryuken also keeps each batch within the SQS batch payload limit (1 MiB).
+
+When the queue rejects a message, `requeue` prints `Could not requeue <id>, code: <code>` for it. The `Requeued <n> messages` line counts only the accepted messages. `requeue` then fails with `Could not requeue <n> messages from <path> to <queue>` (exit status 1).
+
+For a message from a FIFO queue, `requeue` sends a new `MessageDeduplicationId` and keeps its `MessageGroupId`. So requeueing the same dump file twice delivers its messages twice.
+
+`requeue` decodes the base64 Binary values. It also reads dump files without `binary_value_encoding`, whose Binary values it sends as they are.
 
 ## mv
 
@@ -75,6 +87,14 @@ Receives the messages of the source queue and sends them to the target queue.
 |--------|---------|--------|
 | `-n`, `--number` | all | The number of messages to move |
 | `-d`, `--delete` | `true` | Deletes the moved messages from the source queue. Use `--no-delete` to keep them |
+
+`--number` must be at least 1, else `mv` fails with `Number of messages must be at least 1, got <n>` before it receives any message.
+
+When the target queue rejects a message, `mv` prints `Could not requeue <id>, code: <code>` for it and does not delete it from the source queue. The `Moved <n> messages` line counts only the accepted messages. `mv` then prints `Could not move <n> messages, they stay in <source>` and exits with status 1.
+
+When a delete from the source queue fails, `mv` prints `Could not delete <id>, code: <code>, message: <message>, sender_fault: <sender_fault>` for each message, then `Could not delete <n> moved messages from <source>`, and exits with status 1.
+
+For a message from a FIFO queue, `mv` sends a new `MessageDeduplicationId` and keeps its `MessageGroupId`.
 
 ## Draining a queue with dump and mv
 
