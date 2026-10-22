@@ -147,3 +147,19 @@ class MyJob < ActiveJob::Base
   end
 end
 ```
+
+#### `executions` and SQS redeliveries
+
+Under Shoryuken, a job's `executions` counts ActiveJob's own runs plus one for each SQS redelivery of the same message. It grows by one on each `retry_on` retry, as in plain ActiveJob. It also grows by one each time SQS delivers the same message again: after an error that `retry_on` does not handle, or after a visibility timeout.
+
+`retry_on` does not count its attempts in `executions`. It keeps one counter per `retry_on` in `exception_executions`, so redeliveries do not use up `retry_on` attempts.
+
+For example, a job with `retry_on RetryableError, attempts: 5` that fails four times and then succeeds:
+
+| Run | Result | `executions` | `retry_on` attempts used before the run |
+|-----|--------|--------------|-----------------------------------------|
+| 1 | Raises `RetryableError` | 1 | 0 |
+| 2 | Raises `RetryableError` | 2 | 1 |
+| 3 | Raises an error that `retry_on` does not handle; SQS redelivers the message | 3 | 2 |
+| 4 | Raises `RetryableError` | 4 | 2 |
+| 5 | Succeeds | 5 | 3 |
