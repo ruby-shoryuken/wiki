@@ -129,7 +129,7 @@ MyJob.set(wait: 3.seconds).perform_later
    retry_on SomeException, wait: 0, attempts: 3
    ```
 
-2. If you need delayed retries with FIFO queues, implement a custom retry strategy using SQS dead-letter queues or application-level retry logic.
+2. If you need delayed retries with FIFO queues, implement a custom retry strategy using SQS dead-letter queues or application-level retry logic. A dead-letter queue breaks the order of a message group, see [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues#failures-and-dead-letter-queues).
 
 **Fixes:** [#924](https://github.com/ruby-shoryuken/shoryuken/issues/924)
 

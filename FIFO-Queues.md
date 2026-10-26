@@ -26,10 +26,10 @@ Shoryuken::Client.queues('queue.fifo').send_message(
 Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. To stop Shoryuken from generating the ID:
 
 ```ruby
-# perform_async, Queue#send_message and Queue#send_messages (since 7.0.4)
+# perform_async, Queue#send_message and Queue#send_messages
 Shoryuken.fifo_message_deduplication = false
 
-# ActiveJob adapter (since 7.0.3)
+# ActiveJob adapter
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
@@ -55,3 +55,19 @@ Shoryuken.sqs_client_receive_message_opts = {
 ```
 
 See [[Receive Message options]].
+
+## Failures and dead-letter queues
+
+When a worker raises an error, Shoryuken does not delete the message (see [[Retrying a message]]), unless the error matches the worker's [non_retryable_exceptions](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions). SQS returns no other message of the same Message Group ID until that message is deleted or becomes visible again ([see the AWS docs](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-understanding-logic.html)). What happens next depends on the [redrive policy](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) of the queue:
+
+- **Without a redrive policy**, SQS delivers the failed message again after each visibility timeout. The message group stays blocked until the message succeeds.
+- **With a redrive policy**, SQS moves the message to the dead-letter queue (DLQ) after `maxReceiveCount` receives. Then the next message of the same group runs, so the group is no longer processed in order. AWS advises not to use a DLQ with a FIFO queue if you need the exact order of messages.
+
+For example, with `maxReceiveCount: 3`, a `paid` message fails 3 times and SQS moves it to the DLQ. Then the `shipped` message of the same group runs.
+
+When you move the message back from the DLQ later, for example with `shoryuken sqs mv`, it is sent as a new message with the same Message Group ID (see [[Shoryuken SQS CLI]]). It goes to the end of its group: the redriven `paid` message runs after `shipped`.
+
+If the order of a group matters, use one of these patterns:
+
+- Keep the redrive policy, and make the worker check that the previous step is done before it does its work.
+- Do not set a redrive policy. The group stays blocked until the message succeeds, so alert on the failures and fix the cause.
