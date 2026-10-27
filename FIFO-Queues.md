@@ -74,7 +74,7 @@ If the order of a group matters, use one of these patterns:
 
 ### Detecting the last receive
 
-In a worker, `sqs_msg.last_receive?` tells you whether this is the last receive before SQS moves the message to the DLQ. It is `true` when the `ApproximateReceiveCount` of the message has reached the `maxReceiveCount` of the queue. If the worker does not delete the message now, the next receive moves it to the DLQ, and the next message of the group runs. This is the point to alert or to stop the group:
+In a worker, `sqs_msg.last_receive?` tells you whether this is the last receive before SQS moves the message to the DLQ. It is `true` when the `ApproximateReceiveCount` of the message has reached the `maxReceiveCount` of the queue. If the worker does not delete the message now, the next receive moves it to the DLQ, and the next message of the group runs. This is the point to alert:
 
 ```ruby
 class OrderWorker
@@ -91,6 +91,6 @@ class OrderWorker
 end
 ```
 
-`last_receive?` returns `false` when the queue has no redrive policy or the receive count is unknown. With the [Shoryuken Inline adapter](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-Inline-adapter) it always returns `false`.
+`last_receive?` returns `false` when the queue has no redrive policy or the receive count is unknown. With the [[Shoryuken Inline adapter]] it always returns `false`.
 
 `Shoryuken::Queue#max_receive_count` returns the `maxReceiveCount` of the redrive policy as an Integer, or `nil` when the queue has no redrive policy. Shoryuken reads it once per queue and caches it, so `last_receive?` does not make an SQS call for each message.
