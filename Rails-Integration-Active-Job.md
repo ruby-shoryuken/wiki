@@ -51,9 +51,13 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html#send_message-instance_method)). Shoryuken will raise an exception if you attempt to schedule a job further into the future than this limit.
+*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues.
 
 *Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`. With `retry_on` on a FIFO queue, set `wait: 0`.
+
+*Note:* With the `:shoryuken` adapter, `perform_later` raises any error from the send to SQS when the enqueue is not deferred (see the end of this note). Examples: a queue that does not exist (`Shoryuken::Errors::QueueNotFoundError` or `Aws::SQS::Errors::QueueDoesNotExist`, depending on the SQS endpoint), or a job over the SQS message size limit (an AWS SDK error; Shoryuken does not check the size). The adapter does not raise `ActiveJob::EnqueueError`, so `successfully_enqueued?` stays `false` and `enqueue_error` stays `nil`. When ActiveJob defers the enqueue until the Active Record transaction commits (`enqueue_after_transaction_commit`), `perform_later` returns the job with `successfully_enqueued?` `true`, and the send and its error happen after the commit. `ShoryukenConcurrentSendAdapter` passes send errors to its error handler instead (see below).
+
+*Note:* Neither Shoryuken adapter sets `provider_job_id`, so it stays `nil`. The `message_id` that SQS returns is not stored on the job.
 
 
 #### Active Job Queue Name Support
