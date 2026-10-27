@@ -148,6 +148,8 @@ class MyJob < ActiveJob::Base
 end
 ```
 
+On a FIFO queue, the move to the DLQ breaks the order of the message group, see [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues#failures-and-dead-letter-queues).
+
 #### `executions` and SQS redeliveries
 
 Under Shoryuken, a job's `executions` counts ActiveJob's own runs plus one for each SQS redelivery of the same message. It grows by one on each `retry_on` retry, as in plain ActiveJob. It also grows by one each time SQS delivers the same message again: after an error that `retry_on` does not handle, or after a visibility timeout.
