@@ -71,3 +71,26 @@ If the order of a group matters, use one of these patterns:
 
 - Keep the redrive policy, and make the worker check that the previous step is done before it does its work. If it is not done, the worker raises an error, so SQS delivers the message again. This message also moves to the DLQ after `maxReceiveCount` receives.
 - Do not set a redrive policy. The group stays blocked until the message succeeds, so alert on the failures and fix the cause before the `MessageRetentionPeriod` ends. Else SQS deletes the message and it is lost.
+
+### Detecting the last receive
+
+In a worker, `sqs_msg.last_receive?` tells you whether this is the last receive before SQS moves the message to the DLQ. It is `true` when the `ApproximateReceiveCount` of the message has reached the `maxReceiveCount` of the queue. If the worker does not delete the message now, the next receive moves it to the DLQ, and the next message of the group runs. This is the point to alert:
+
+```ruby
+class OrderWorker
+  include Shoryuken::Worker
+
+  shoryuken_options queue: 'orders.fifo', auto_delete: true
+
+  def perform(sqs_msg, body)
+    process(body)
+  rescue StandardError
+    notify_ops(sqs_msg.message_id) if sqs_msg.last_receive?
+    raise
+  end
+end
+```
+
+`last_receive?` returns `false` when the queue has no redrive policy or the receive count is unknown. With the [[Shoryuken Inline adapter]] it always returns `false`.
+
+`Shoryuken::Queue#max_receive_count` returns the `maxReceiveCount` of the redrive policy as an Integer, or `nil` when the queue has no redrive policy. Shoryuken reads it once per queue and caches it, so `last_receive?` does not make an SQS call for each message.
