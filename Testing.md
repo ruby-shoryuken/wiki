@@ -12,7 +12,8 @@ For testing with RSpec you can stub `perform_async` and `perform_in`:
 expect(MyJob).to receive(:perform_async)
 
 # calling the original worker
-allow(MyJob).to receive(:perform_async) { |sqs_msg, body| MyJob.new.perform(sqs_msg, body) }
+allow(MyJob).to receive(:perform_async) { |body, _options = {}| MyJob.new.perform(instance_double(Shoryuken::Message), body) }
+allow(MyJob).to receive(:perform_in) { |_interval, body, _options = {}| MyJob.new.perform(instance_double(Shoryuken::Message), body) }
 ```
 
 ### Full testing example
