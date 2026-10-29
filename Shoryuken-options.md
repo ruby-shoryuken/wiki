@@ -165,7 +165,7 @@ queues:
   - [queue3, 1]
 ```
 
-The weights set how often Shoryuken fetches each queue relative to the others. The queues take turns, so `queue1` is not fetched 8 times in a row. Each weight starts at 1 and grows by 1 after every fetch that returns messages, up to the configured weight. For the fetch order step by step, see [[Polling strategies]].
+Each weight starts at 1 and grows by 1 after every fetch that returns messages, up to the configured weight. Once all queues keep returning messages, Shoryuken fetches messages in cycles of `queue1` 8 times, then `queue2` 4 times, then `queue3` once, then repeats. A fetch that returns no messages pauses that queue, and it comes back with weight 1. For the fetch order step by step, see [[Polling strategies]].
 
 *Note:* Each fetch can fetch up to 10 messages at a time (SQS limitation). The fetch size will also depend on the available workers at the time of the fetch.
 
