@@ -254,8 +254,8 @@ Default: `true`
 Control whether Shoryuken generates a Message Deduplication ID for messages sent to FIFO queues. See [[FIFO Queues]].
 
 ```ruby
-Shoryuken.fifo_message_deduplication = false            # since 7.0.4
-Shoryuken.active_job_fifo_message_deduplication = false # since 7.0.3
+Shoryuken.fifo_message_deduplication = false
+Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
 ### Server and client configuration
