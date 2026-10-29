@@ -58,4 +58,6 @@ INT (for example Ctrl+C in a terminal) does the same as TERM.
 | `TSTP`, `USR1` | `quiet`, `shutdown`, `stopped` |
 | `TERM`, `INT` | `shutdown`, `stopped` |
 
+A signal that arrives after a stop has completed fires no events. For example, `TERM` after a completed `TSTP` stop only exits the process: the `shutdown` and `stopped` handlers do not run again.
+
 See [[Lifecycle Events]].
