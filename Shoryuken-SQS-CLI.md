@@ -10,9 +10,13 @@ The `shoryuken sqs` commands manage SQS queues from the command line. To list th
 | `create QUEUE-NAME` | Creates a queue |
 | `delete QUEUE-NAME` | Deletes a queue |
 
+An unknown command, an unknown option or an extra argument prints an error, for example `Could not find command "bogus"`, `Unknown switches "--bogus"` or `ERROR: "shoryuken sqs ls" was called with arguments ["a", "b"]`, and exits with status 1. See [CLI options](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#cli-options) in [[Shoryuken options]].
+
 ## Queue names and the endpoint
 
 The commands take a queue name, not a queue URL. Shoryuken looks up the URL of the name. On SQS, an unknown name fails with `The specified queue <name> does not exist`.
+
+An argument after `--` that starts with `-` fails with `Unknown switches`. So `shoryuken sqs purge -- -queue` does not reach a queue named `-queue`.
 
 `-e`/`--endpoint` sets the SQS endpoint for every command. Its default is the `SHORYUKEN_SQS_ENDPOINT` environment variable. See [[Using a local mock SQS server]].
 
@@ -30,6 +34,8 @@ Prints a table of the queues whose names start with the prefix, or of all queues
 |--------|---------|--------|
 | `-w`, `--watch` | | Prints the table again until you press Ctrl-C |
 | `-n`, `--interval` | `2` | Seconds between two tables with `--watch` |
+
+An unknown option is not taken as the prefix: `shoryuken sqs ls --bogus` fails with `Unknown switches "--bogus"`.
 
 ## dump
 
