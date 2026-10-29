@@ -19,7 +19,7 @@ MyWorker.perform_async('Pablo')                     # will queue to the default 
 MyWorker.perform_async('Pablo', queue: 'important') # will queue to the 'important' queue
 ```
 
-### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html):
+### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html):
 
 ```ruby
 # To send a single message
