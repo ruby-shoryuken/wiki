@@ -1,4 +1,4 @@
-Since 7.0, the Shoryuken ActiveJob adapter supports `ActiveJob.perform_all_later`. It sends the jobs with the SQS `SendMessageBatch` API instead of one `SendMessage` call per job.
+The Shoryuken ActiveJob adapter supports `ActiveJob.perform_all_later`. It sends the jobs with the SQS `SendMessageBatch` API instead of one `SendMessage` call per job.
 
 ```ruby
 jobs = users.map { |user| NotifyUserJob.new(user.id) }
