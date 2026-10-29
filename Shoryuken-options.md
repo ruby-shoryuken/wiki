@@ -49,6 +49,14 @@ shoryuken -R -C config/shoryuken.yml -d -L log/shoryuken.log -P tmp/pids/shoryuk
 
 To list all CLI options: `shoryuken help start`.
 
+An unknown command, an unknown option or an extra argument prints an error, and `shoryuken` exits with status 1. This applies to `start`, `version` and the [[Shoryuken SQS CLI]] commands:
+
+| Input | Error |
+|-------|-------|
+| `shoryuken bogus` | `Could not find command "bogus"` |
+| `shoryuken start --bogus` | `Unknown switches "--bogus"` |
+| `shoryuken start extra` | `ERROR: "shoryuken start" was called with arguments ["extra"]` |
+
 ## Option validation
 
 When `shoryuken start` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
