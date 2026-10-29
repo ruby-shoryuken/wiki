@@ -5,7 +5,7 @@ There are a few ways to configure the AWS client:
 * Set `Aws.config[:credentials]` or `Shoryuken.sqs_client = Aws::SQS::Client.new(...)` from Ruby code (e.g. in a Rails initializer)
 * Use the Instance Profiles feature. The IAM role of the targeted machine must have an adequate SQS Policy.
 
-You can read about these in more detail [here](http://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html).
+You can read about these in more detail [here](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html).
 
 ## Setting the SQS client in Ruby
 

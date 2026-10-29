@@ -51,7 +51,7 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdkforruby/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues.
+*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues.
 
 *Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`. With `retry_on` on a FIFO queue, set `wait: 0`.
 
