@@ -49,7 +49,7 @@ shoryuken -R -C config/shoryuken.yml -d -L log/shoryuken.log -P tmp/pids/shoryuk
 
 To list all CLI options: `shoryuken help start`.
 
-An unknown command, an unknown option or an extra argument prints an error, and `shoryuken` exits with status 1. This applies to `start`, `version` and the [[Shoryuken SQS CLI]] commands:
+An unknown command, an unknown option or an extra argument prints an error, and `shoryuken` exits with status 1. This applies to `start`, `check`, `version` and the [[Shoryuken SQS CLI]] commands:
 
 | Input | Error |
 |-------|-------|
@@ -57,9 +57,37 @@ An unknown command, an unknown option or an extra argument prints an error, and 
 | `shoryuken start --bogus` | `Unknown switches "--bogus"` |
 | `shoryuken start extra` | `ERROR: "shoryuken start" was called with arguments ["extra"]` |
 
+## Check the configuration
+
+`shoryuken check` validates the configuration, the queues and the workers without starting to process. It takes the same CLI options as `start`:
+
+```shell
+shoryuken check -R -C config/shoryuken.yml
+```
+
+It loads the Rails application (with `-R`), the configuration file and the CLI options, validates the options, requires the workers and checks that each queue exists in SQS. Because it calls SQS for each queue, it needs the same AWS credentials, region and access as `start`.
+
+- When the setup is valid, it prints `Configuration OK` and exits with status 0.
+- Otherwise, it prints `[FAIL]` followed by the problem, without a backtrace, and exits with status 1.
+
+It fails on:
+
+- A missing or malformed configuration file
+- An invalid option value (see [Option validation](#option-validation))
+- `-d` without `-L`
+- A `-r` path that does not exist
+- A queue that does not exist
+- Missing AWS credentials or region
+- No queues: `No queues supplied`
+- A queue without a worker: `No worker supplied for <queue>`, one line for each queue. When ActiveJob is loaded, queues without a worker are not reported
+
+On `start`, the last two are only log warnings.
+
+To list its options: `shoryuken help check`.
+
 ## Option validation
 
-When `shoryuken start` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
+When `shoryuken start` or `shoryuken check` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
 
 An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
 

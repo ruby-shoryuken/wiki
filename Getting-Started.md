@@ -133,5 +133,13 @@ Start Shoryuken with the configuration file:
 bundle exec shoryuken -R -C config/shoryuken.yml
 ```
 
+To validate the configuration, the queues and the workers without starting to process, run `shoryuken check` with the same options:
+
+```shell
+bundle exec shoryuken check -R -C config/shoryuken.yml
+```
+
+It prints `Configuration OK` and exits with status 0, or prints `[FAIL]` with the problem and exits with status 1. See [Check the configuration](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#check-the-configuration).
+
 See [[Shoryuken options]] for all available configuration options.
 
