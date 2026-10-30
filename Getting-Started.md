@@ -139,7 +139,7 @@ To validate the configuration, the queues and the workers without starting to pr
 bundle exec shoryuken check -R -C config/shoryuken.yml
 ```
 
-It prints `Configuration OK` and exits with status 0, or prints `[FAIL]` with the problem and exits with status 1. See [Check the configuration](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#check-the-configuration).
+It prints `Configuration OK` and exits with status 0. On a problem it exits with status 1, and for the failures listed in [Check the configuration](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#check-the-configuration) it prints `[FAIL]` with the problem.
 
 See [[Shoryuken options]] for all available configuration options.
 

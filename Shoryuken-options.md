@@ -68,9 +68,10 @@ shoryuken check -R -C config/shoryuken.yml
 It loads the Rails application (with `-R`), the configuration file and the CLI options, validates the options, requires the workers and checks that each queue exists in SQS. Because it calls SQS for each queue, it needs the same AWS credentials, region and access as `start`.
 
 - When the setup is valid, it prints `Configuration OK` and exits with status 0.
-- Otherwise, it prints `[FAIL]` followed by the problem, without a backtrace, and exits with status 1.
+- On a failure below, it prints `[FAIL]` followed by the problem, without a backtrace, and exits with status 1.
+- On any other error, for example one raised while a worker file loads, it prints the Ruby error with its backtrace and exits with status 1.
 
-It fails on:
+It fails with `[FAIL]` on:
 
 - A missing or malformed configuration file
 - An invalid option value (see [Option validation](#option-validation))
