@@ -61,7 +61,7 @@ All Shoryuken errors now inherit from `Shoryuken::Errors::BaseError`:
 - `Shoryuken::Errors::InvalidWorkerRegistrationError` - Raised for worker registration conflicts
 - `Shoryuken::Errors::InvalidPollingStrategyError` - Raised for invalid polling strategy configuration
 - `Shoryuken::Errors::InvalidEventError` - Raised for invalid lifecycle event names
-- `Shoryuken::Errors::InvalidDelayError` - Raised by `perform_in` and `perform_at`, and by ActiveJob `set(wait:)` and `set(wait_until:)`, when a delay exceeds the SQS 15-minute maximum (see [[Rails Integration Active Job]])
+- `Shoryuken::Errors::InvalidDelayError` - Raised by `perform_in` and `perform_at`, and by ActiveJob `set(wait:)` and `set(wait_until:)`, when a delay exceeds the SQS 15-minute maximum. Rescue this class or `Shoryuken::Errors::BaseError`, not `RuntimeError` (see [[Rails Integration Active Job]])
 - `Shoryuken::Errors::FifoDelayNotSupportedError` - Raised when a delay is used with a FIFO queue (since 7.0.1)
 - `Shoryuken::Errors::InvalidArnError` - Raised for invalid ARN format
 
