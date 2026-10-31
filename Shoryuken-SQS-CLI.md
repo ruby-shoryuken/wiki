@@ -20,6 +20,8 @@ An argument after `--` that starts with `-` fails with `Unknown switches`. So `s
 
 `-e`/`--endpoint` sets the SQS endpoint for every command. Its default is the `SHORYUKEN_SQS_ENDPOINT` environment variable. See [[Using a local mock SQS server]].
 
+Put `-e`/`--endpoint` after the command, as in `shoryuken sqs ls -e URL`. Before the command, it fails with `Options must follow the command:` and the command in the correct order, and exits with status 1. For example, `shoryuken sqs -e URL ls prefix` fails with `Options must follow the command: shoryuken sqs ls prefix -e URL`.
+
 For the IAM actions that the commands need, see [[Amazon SQS IAM Policy for Shoryuken]].
 
 ## ls
