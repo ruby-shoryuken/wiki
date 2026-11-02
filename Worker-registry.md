@@ -2,7 +2,7 @@ For retrieving which worker to call for each queue/message, Shoryuken uses [`Def
 
 ## Extending the default registry
 
-A custom registry subclasses `Shoryuken::DefaultWorkerRegistry` and overrides only `fetch_worker`. Call `super` to keep the default lookup: the class in the `shoryuken_class` message attribute, else the worker registered for the queue.
+A custom registry subclasses `Shoryuken::DefaultWorkerRegistry` and overrides the methods it needs. The example below overrides `fetch_worker` and calls `super` to keep the default lookup: the class in the `shoryuken_class` message attribute, else the worker registered for the queue.
 
 ```ruby
 class CustomWorkerRegistry < Shoryuken::DefaultWorkerRegistry
