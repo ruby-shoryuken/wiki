@@ -2,7 +2,7 @@
 
 ## Option validation
 
-`shoryuken_options` checks its keys when the worker class loads. An unknown key raises `Shoryuken::Errors::InvalidConfigurationError`, so the worker class does not load and `shoryuken start` stops before it processes messages. Only the keys are checked, not their values.
+`shoryuken_options` checks its keys and the [`body_parser`](#body_parser) value when the worker class loads. An unknown key or an unsupported `body_parser` value raises `Shoryuken::Errors::InvalidConfigurationError`, so the worker class does not load and `shoryuken start` stops before it processes messages. `shoryuken check` prints the error after `[FAIL]` and exits with status 1. The other option values are not checked.
 
 ```ruby
 class MyWorker
@@ -14,6 +14,8 @@ end
 ```
 
 The error names the worker and the key, `MyWorker.auto_delte`, with the message `is not a known worker option`.
+
+The `body_parser` value is checked on the worker's options merged with `Shoryuken.default_worker_options`, so an unsupported value fails also when the worker inherits it or it comes from `default_worker_options`. The error names the worker and the key, `MyWorker.body_parser`, with the message `needs to be nil, :json, :text, a Proc or an object that responds to parse or load`.
 
 The known worker option keys are [`queue`](#queue), `delete` (an alias of [`auto_delete`](#auto_delete)), [`auto_delete`](#auto_delete), [`auto_visibility_timeout`](#auto_visibility_timeout), [`retry_intervals`](#retry_intervals), [`batch`](#batch), [`body_parser`](#body_parser) and [`non_retryable_exceptions`](#non_retryable_exceptions).
 
@@ -87,7 +89,12 @@ Another important observation regarding batchable workers is if one of your mess
 
 Default: `:text`
 
-The `body_parser` allows you to parse the body before calling the `perform` method. It accepts: `:json`, `:text`, a block or a class that responds to `.parse`.
+The `body_parser` allows you to parse the body before calling the `perform` method. It accepts:
+
+- `:json`: the body is parsed with `JSON.parse`.
+- `:text` or no value: the body is passed as the raw String.
+- A Proc or lambda: it is called with the `Shoryuken::Message`, not the body String. Read the body with `sqs_msg.body`.
+- An object that responds to `.parse` or `.load`: it is called with the body String. When the object responds to both, `.parse` is used.
 
 ```ruby
 shoryuken_options body_parser: :json
@@ -96,6 +103,16 @@ shoryuken_options body_parser: ->(sqs_msg){ REXML::Document.new(sqs_msg.body) }
 
 shoryuken_options body_parser: JSON
 ```
+
+*Note:* `YAML` responds to both, so `body_parser: YAML` calls `YAML.parse` and gives a Psych document tree, not a Hash. For YAML, use a Proc:
+
+```ruby
+shoryuken_options body_parser: ->(sqs_msg) { YAML.safe_load(sqs_msg.body) }
+```
+
+The same forms apply to [`batch`](#batch) workers, where each message gets its own parsed body. Middleware gets the same parsed body as `perform`.
+
+Any other value (for example `:JSON`, `'json'` or `JSON.method(:parse)`) raises an error when the worker class loads (see [Option validation](#option-validation)).
 
 ### auto_visibility_timeout
 
