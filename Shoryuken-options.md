@@ -317,7 +317,7 @@ Some errors that a worker raises are handled by a server middleware, so the hand
 
 With `retry_intervals` set, the handlers are still called when the message is not retried with backoff: the interval for the attempt is `nil` or `false` (for example, a lambda that returns `nil`), Shoryuken cannot change the message's visibility timeout, or the worker is a batch worker (backoff does not apply to batches).
 
-Shoryuken parses the message body with the worker's [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser) before the server middleware chain runs. So no server middleware can handle an error of the body parser (for example `JSON::ParserError` with `body_parser: :json`), and `non_retryable_exceptions` and `retry_intervals` do not apply to it. The handlers are called, and the message is not deleted. In a batch worker, one body that fails to parse fails every message of the batch: `perform` is not called. For a queue that can get invalid bodies, see [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
+Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
 
 ```ruby
 Shoryuken.configure_server do |config|
