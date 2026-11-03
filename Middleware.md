@@ -70,6 +70,8 @@ end
 
 *Note:* When [batch is enabled](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch), the `sqs_msg` and `body` arguments are arrays.
 
+*Note:* Shoryuken parses the body before the middleware chain runs. A body that fails to parse never reaches a middleware, so a middleware cannot reject or handle it. See [body_parser](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
+
 ## Built-in middleware
 
 The default server chain holds, in this order:
