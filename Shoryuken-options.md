@@ -308,7 +308,7 @@ See [[Middleware]] and [[Lifecycle Events]].
 
 ### exception_handlers
 
-Each handler is called with the exception, the queue name and the SQS message when an error raised while Shoryuken processes a message (body parsing, the server middleware or `perform`) is not handled by a server middleware (see [[Middleware]]). The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
+Each handler is called with the exception, the queue name and the SQS message when an error is raised while Shoryuken processes a message: always for an error of the body parser, and for an error of the server middleware or `perform` when no server middleware handles it (see [[Middleware]]). For a [`batch`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch) worker, the SQS message is an Array of the messages of the batch. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
 
 Some errors that a worker raises are handled by a server middleware, so the handlers are not called for them:
 
@@ -316,6 +316,8 @@ Some errors that a worker raises are handled by a server middleware, so the hand
 - An error that [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
 
 With `retry_intervals` set, the handlers are still called when the message is not retried with backoff: the interval for the attempt is `nil` or `false` (for example, a lambda that returns `nil`), Shoryuken cannot change the message's visibility timeout, or the worker is a batch worker (backoff does not apply to batches).
+
+Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
 
 ```ruby
 Shoryuken.configure_server do |config|

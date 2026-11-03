@@ -114,6 +114,10 @@ The same forms apply to [`batch`](#batch) workers, where each message gets its o
 
 Any other value (for example `:JSON`, `'json'` or `JSON.method(:parse)`) raises an error when the worker class loads (see [Option validation](#option-validation)).
 
+Shoryuken parses the body before the server middleware chain runs. When the parser raises (for example `JSON::ParserError` with `body_parser: :json`), no server middleware runs and `perform` is not called, so [`non_retryable_exceptions`](#non_retryable_exceptions) and [`retry_intervals`](#retry_intervals) do not apply. The error goes to [`exception_handlers`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#exception_handlers), and the message is not deleted: it is received again after its visibility timeout, or moves to the dead-letter queue by the queue's redrive policy. In a batch worker, the bodies of all messages are parsed before `perform`, so one body that fails to parse fails every message of the batch.
+
+For a queue that can get bodies that your parser rejects, use `:text` and parse the body in `perform`, where you can handle the error for each message.
+
 ### auto_visibility_timeout
 
 Default: `false`
@@ -179,3 +183,5 @@ end
 ```
 
 It also works with `batch: true`: all messages of the batch are deleted. It takes precedence over [`retry_intervals`](#retry_intervals).
+
+It does not apply to an error of the [`body_parser`](#body_parser): the body is parsed before the server middleware and the worker run.
