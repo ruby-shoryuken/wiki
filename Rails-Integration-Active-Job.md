@@ -57,6 +57,8 @@ end
 
 *Note:* With the `:shoryuken` adapter, `perform_later` raises any error from the send to SQS when the enqueue is not deferred (see the end of this note). Examples: a queue that does not exist (`Shoryuken::Errors::QueueNotFoundError` or `Aws::SQS::Errors::QueueDoesNotExist`, depending on the SQS endpoint), or a job over the SQS message size limit (an AWS SDK error; Shoryuken does not check the size). The adapter does not raise `ActiveJob::EnqueueError`, so `successfully_enqueued?` stays `false` and `enqueue_error` stays `nil`. When ActiveJob defers the enqueue until the Active Record transaction commits (`enqueue_after_transaction_commit`), `perform_later` returns the job with `successfully_enqueued?` `true`, and the send and its error happen after the commit. `ShoryukenConcurrentSendAdapter` passes send errors to its error handler instead (see below).
 
+*Note:* A job that leaves a Fiber scheduler set (`Fiber.set_scheduler`) gets it set back after the job, with a warning in the log. See [[Fibers Async]].
+
 *Note:* Neither Shoryuken adapter sets `provider_job_id`, so it stays `nil`. The `message_id` that SQS returns is not stored on the job.
 
 
