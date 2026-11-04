@@ -1,4 +1,4 @@
-Shoryuken runs jobs on threads. You can also use fibers, for example the [async](https://github.com/socketry/async) gem or a fiber-based server such as Falcon: to send messages, and inside jobs.
+Shoryuken runs jobs on threads. You can still send messages from fibers and use fibers inside jobs, for example with the [async](https://github.com/socketry/async) gem or a fiber-based server such as Falcon.
 
 ## Sending messages from fibers
 
@@ -48,10 +48,8 @@ If a job sets a scheduler itself with `Fiber.set_scheduler`, it must remove it (
 
 ### A job that leaves a Fiber scheduler set
 
-After each job, also a job that raises, the Shoryuken process checks the Fiber scheduler of the job's thread. If it is not the one set before the job, Shoryuken sets back the previous one and logs a warning:
+After each job, including one that raises, the Shoryuken process checks the Fiber scheduler of the job's thread. If it is not the one set before the job, Shoryuken sets back the previous one and logs a warning:
 
 ```
 A job on <queue> left a Fiber scheduler set; Shoryuken set back the previous one after the job
 ```
-
-The warning points to a job to fix as shown above. Before [#1144](https://github.com/ruby-shoryuken/shoryuken/pull/1144), the scheduler stayed on the thread, and a later job on that thread that called `Sync` with a blocking call waited forever.
