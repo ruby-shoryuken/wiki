@@ -31,7 +31,7 @@ kill -TSTP [shoryuken_pid]
 
 USR1 tells Shoryuken to shut down gracefully. It will stop sending any new requests to fetch from SQS, but will ensure that all the requests already sent will be processed (guaranteeing that no message stayed as non-visible on SQS).
 
-Shoryuken exits once everything is processed.
+Shoryuken exits with status 0 once everything is processed. When Shoryuken sent USR1 to itself after a fatal dispatch error (see [[Health Checks]]), it exits with status 1, so a process supervisor sees a crash.
 
 ```bash
 kill -USR1 [shoryuken_pid]
