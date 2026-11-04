@@ -55,7 +55,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to USR1: USR1 makes Shoryuken exit (see [[Signals]]).
+Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to USR1: USR1 makes Shoryuken exit (see [[Signals]]). After a fatal dispatch error Shoryuken exits with status 1, so `Restart=on-failure` restarts it. A USR1, TERM or INT that you send exits with status 0.
 
 ## Shutdown
 

@@ -285,6 +285,24 @@ Shoryuken.fifo_message_deduplication = false
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
+### launcher_executor
+
+Default: `nil`: the launcher uses its own `Concurrent::CachedThreadPool`.
+
+The executor that runs the dispatch loops and the workers. It does not have to be a concurrent-ruby executor. Any object with these methods works:
+
+- `post { ... }` runs the block on another thread and returns without waiting for it. To reject the block, it raises `Concurrent::RejectedExecutionError`, and Shoryuken makes the message visible again. An executor that runs the block in the calling thread overflows the stack, because the dispatch loop posts its next cycle from inside the block.
+- `running?` returns `false` once the executor is shut down.
+- `shutdown` stops accepting new blocks and lets the posted ones finish.
+- `wait_for_termination(timeout)` waits up to `timeout` seconds (`nil`: no limit) for the posted blocks to finish and returns `true` when they did.
+- `kill` stops the posted blocks that did not finish in time.
+
+When Shoryuken stops, it calls `shutdown`, then `kill` if `wait_for_termination` with the [`timeout`](#timeout) value returns `false`.
+
+```ruby
+Shoryuken.launcher_executor = MyExecutor.new
+```
+
 ### Server and client configuration
 
 `configure_server` runs only in the Shoryuken process. `configure_client` runs only outside it (for example in a web process that enqueues jobs).
