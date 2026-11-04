@@ -289,9 +289,9 @@ Shoryuken.active_job_fifo_message_deduplication = false
 
 Default: `nil`: the launcher uses its own `Concurrent::CachedThreadPool`.
 
-The executor that runs the dispatch loops and the workers. It does not have to be a concurrent-ruby executor. Any object with these methods works:
+The executor that runs the dispatch loops and the workers. It does not have to be a concurrent-ruby executor (see [Changes in 7.0.x Patch Releases](https://github.com/ruby-shoryuken/shoryuken/wiki/Upgrading-to-7.0#changes-in-70x-patch-releases)). Any object with these methods works:
 
-- `post { ... }` runs the block on another thread and returns without waiting for it. To reject the block, it raises `Concurrent::RejectedExecutionError`, and Shoryuken makes the message visible again. An executor that runs the block in the calling thread overflows the stack, because the dispatch loop posts its next cycle from inside the block.
+- `post { ... }` runs the block on another thread and returns without waiting for it. To reject the block, it raises `Concurrent::RejectedExecutionError`. When it rejects a worker's block, Shoryuken makes the message visible again. When it rejects the dispatch loop's block, the processing group stops dispatching. An executor that runs the block in the calling thread overflows the stack, because the dispatch loop posts its next cycle from inside the block.
 - `running?` returns `false` once the executor is shut down.
 - `shutdown` stops accepting new blocks and lets the posted ones finish.
 - `wait_for_termination(timeout)` waits up to `timeout` seconds (`nil`: no limit) for the posted blocks to finish and returns `true` when they did.
