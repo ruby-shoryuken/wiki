@@ -51,7 +51,7 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues. The limit also applies to `retry_on` waits, where a longer wait makes the job run again on each receive, see [`retry_on` waits over 15 minutes](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#retry_on-waits-over-15-minutes).
+*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues. The limit also applies to `retry_on` waits, where a longer wait makes the job run again on each receive while it keeps failing, see [`retry_on` waits over 15 minutes](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#retry_on-waits-over-15-minutes).
 
 *Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`. With `retry_on` on a FIFO queue, set `wait: 0`.
 
@@ -160,7 +160,7 @@ On a FIFO queue, the move to the DLQ breaks the order of the message group, see 
 
 #### `retry_on` waits over 15 minutes
 
-A `retry_on` wait over 15 minutes makes the job run again and again. The retry's enqueue raises `Shoryuken::Errors::InvalidDelayError` inside the worker, so Shoryuken does not delete the message. SQS delivers the original message again with the same `retry_on` attempt count, so `retry_on` computes the same wait and fails the same way on each receive. The attempts never run out, the `retry_on` block never runs, and logs and exception handlers get `Shoryuken::Errors::InvalidDelayError`, not the job's error. The loop ends when a redrive policy moves the message to the DLQ, or when the message retention period ends.
+A `retry_on` wait over 15 minutes makes the job run again on each receive while it keeps raising that error. The retry's enqueue raises `Shoryuken::Errors::InvalidDelayError` inside the worker, so Shoryuken does not delete the message. SQS delivers the original message again with the same `retry_on` attempt count, so `retry_on` computes the same wait and fails the same way on each receive. The attempts never run out, the `retry_on` block never runs, and logs and exception handlers get `Shoryuken::Errors::InvalidDelayError`, not the job's error (the job's error is its `cause`). The loop ends when a run finishes without raising (for example the job succeeds) and Shoryuken deletes the message, when a redrive policy moves the message to the DLQ, or when the message retention period ends.
 
 This happens with:
 
