@@ -69,7 +69,7 @@ It loads the Rails application (with `-R`), the configuration file and the CLI o
 
 - When the setup is valid, it prints `Configuration OK` and exits with status 0.
 - On a failure below, it prints `[FAIL]` followed by the problem, without a backtrace, and exits with status 1.
-- On any other error, for example one raised while a worker file loads, it prints the Ruby error with its backtrace and exits with status 1.
+- On any other error, for example a `NameError` in a worker file, it prints the Ruby error with its backtrace and exits with status 1.
 
 It fails with `[FAIL]` on:
 
@@ -77,6 +77,7 @@ It fails with `[FAIL]` on:
 - An invalid option value (see [Option validation](#option-validation))
 - `-d` without `-L`
 - A `-r` path that does not exist
+- An unknown worker option key, or an unsupported `body_parser` value even when it comes from `Shoryuken.default_worker_options` (see [[Worker options]])
 - A queue that does not exist
 - Missing AWS credentials or region
 - No queues: `No queues supplied`
