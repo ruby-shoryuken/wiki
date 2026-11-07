@@ -51,7 +51,7 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues.
+*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues. The limit also applies to `retry_on` waits, where a longer wait makes the job run again on each receive, see [`retry_on` waits over 15 minutes](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#retry_on-waits-over-15-minutes).
 
 *Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`. With `retry_on` on a FIFO queue, set `wait: 0`.
 
@@ -128,7 +128,7 @@ For FIFO queues, the adapter derives a `message_deduplication_id` from the seria
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
-Then give a `message_deduplication_id` with `.set`, or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
+Each enqueue then still gets a `message_deduplication_id` while `Shoryuken.fifo_message_deduplication` is `true` (the default): a SHA-256 hash of the full message body. The body includes the unique `job_id`, so SQS does not deduplicate the enqueues. With both settings at `false`, give a `message_deduplication_id` with `.set`, or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
 
 #### More features
 
@@ -157,6 +157,22 @@ end
 ```
 
 On a FIFO queue, the move to the DLQ breaks the order of the message group, see [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues#failures-and-dead-letter-queues).
+
+#### `retry_on` waits over 15 minutes
+
+A `retry_on` wait over 15 minutes makes the job run again and again. The retry's enqueue raises `Shoryuken::Errors::InvalidDelayError` inside the worker, so Shoryuken does not delete the message. SQS delivers the original message again with the same `retry_on` attempt count, so `retry_on` computes the same wait and fails the same way on each receive. The attempts never run out, the `retry_on` block never runs, and logs and exception handlers get `Shoryuken::Errors::InvalidDelayError`, not the job's error. The loop ends when a redrive policy moves the message to the DLQ, or when the message retention period ends.
+
+This happens with:
+
+- `wait: :polynomially_longer` and `attempts: 7` or more: the 6th retry waits 1298 s (`6**4 + 2`) or more.
+- A fixed `wait:` close to 15 minutes, for example `wait: 15.minutes`, when `retry_jitter` is 0.15 (the Rails default with `load_defaults` 6.1 or later): the jitter adds up to 15% to the wait.
+
+Keep every `retry_on` wait at 900 s or less, jitter included, and set a redrive policy on the queue. ActiveJob adds no jitter to a `wait:` lambda:
+
+```ruby
+retry_on Timeout::Error, wait: ->(executions) { [executions**4 + 2, 900].min }, attempts: 10
+retry_on Net::OpenTimeout, wait: 15.minutes, jitter: 0, attempts: 5
+```
 
 #### `executions` and SQS redeliveries
 
