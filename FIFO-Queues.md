@@ -33,7 +33,7 @@ Shoryuken.fifo_message_deduplication = false
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
-Both default to `true`. An explicit `message_deduplication_id` is always used. With the setting at `false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue.
+Both default to `true`. An explicit `message_deduplication_id` is always used. With `fifo_message_deduplication = false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue; for ActiveJob, this is needed only when both settings are `false`. With only `active_job_fifo_message_deduplication = false`, each ActiveJob enqueue still gets a SHA-256 hash of the full message body. The body includes the `job_id`, so distinct enqueues are not deduplicated.
 
 *Note:* If you are fetching from a FIFO queue and not using the batch option for workers, the fetcher will fetch a maximum of one message at a time, in order to ensure that the messages for a particular Message Group ID are executed in FIFO order ([see here](https://github.com/ruby-shoryuken/shoryuken/blob/17e9df8d80d86485c1b80ef4465350a8c40fa90d/lib/shoryuken/fetcher.rb#L62-L71)). It is better to keep `concurrency > 1` in this case, so that your worker can service jobs from other Message Group IDs at the same time.
 
