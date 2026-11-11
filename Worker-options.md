@@ -54,7 +54,7 @@ shoryuken_options queue: %w[queue1 queue2 queue3]
 
 Default: `false`
 
-When it's enabled, Shoryuken auto deletes messages after their consumption, but only in case, the worker doesn't raise any exception during the consumption.
+When it's enabled, Shoryuken auto deletes messages after their consumption, but only when no exception reaches the `AutoDelete` middleware. A server middleware added with `chain.add` runs inside `AutoDelete`: when it rescues an exception of the worker and does not raise it again, the message is deleted. See [[Middleware]].
 
 As `auto_delete` is `false` by default, remember to set it to `true` or call `sqs_msg.delete` before ending the `perform` method, otherwise, the messages will get back to the queue, becoming available to be consumed again.
 
