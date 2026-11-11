@@ -13,7 +13,7 @@ Some references on FIFO queues:
 
 When a job runs longer than the queue's [visibility timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html), SQS makes the message visible again while the first run is still busy, and Shoryuken runs it again in another thread. Each copy takes a thread and, with ActiveRecord, a database connection. When the database pool is smaller than [`concurrency`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#concurrency), the threads can need more connections than the pool holds, and ActiveRecord raises `could not obtain a connection from the pool`: keep the pool at least as large as `concurrency`.
 
-When such a job finishes without raising, the [`Timing` middleware](https://github.com/ruby-shoryuken/shoryuken/wiki/Middleware#built-in-middleware) logs a warning: `exceeded the queue visibility timeout by N ms`.
+When such a job ends and no error from it reaches the [`Timing` middleware](https://github.com/ruby-shoryuken/shoryuken/wiki/Middleware#built-in-middleware), Timing logs a warning: `exceeded the queue visibility timeout by N ms`.
 
 To keep the message hidden while the job runs, either:
 
