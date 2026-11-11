@@ -27,3 +27,20 @@ sqs_msg.visibility_timeout = 0 # visible again at once
 Shoryuken also supports exponential backoff. See [retry_intervals](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals).
 
 To delete a message instead of retrying it for some exceptions, see [non_retryable_exceptions](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions).
+
+## Retrying a message by hand
+
+SQS has no call that retries one message. To run a failed message again by hand, for example one that your middleware stored, send its body and message attributes again as a new message. See [[Sending a message]].
+
+```ruby
+Shoryuken::Client.queues('my-queue').send_message(
+  message_body: stored_body,
+  message_attributes: stored_message_attributes
+)
+```
+
+- **Message attributes:** Shoryuken picks the worker from the `shoryuken_class` message attribute. Without it, Shoryuken uses the worker registered for the queue. Give each attribute value as a Hash with symbol keys (`data_type` and `string_value` or `binary_value`). After a JSON round trip the keys are strings, and the send fails with `missing required parameter`.
+- **The original message:** when the error leaves your middleware, `auto_delete` does not delete the message, and SQS delivers it again when its visibility timeout ends. To retry it only by hand, call `sqs_msg.delete` after you store it; otherwise both the original and the new message run. A middleware added with `chain.add` runs inside `AutoDelete` (see [[Middleware]]): when it rescues the error and does not raise it again, `auto_delete: true` deletes the message.
+- **FIFO queues:** pass the original `message_group_id` (`sqs_msg.attributes['MessageGroupId']`); else Shoryuken sends the message to the group `ShoryukenMessage`. Pass a new `message_deduplication_id`, for example `SecureRandom.uuid`. By default, Shoryuken sets it to a SHA-256 hash of the body, and SQS drops a message whose deduplication ID it saw in the last 5 minutes. See [[FIFO Queues]].
+
+To send the messages of a dead-letter queue back to their queue, use `shoryuken sqs mv DLQ-NAME QUEUE-NAME`, or `shoryuken sqs dump DLQ-NAME` and then `shoryuken sqs requeue QUEUE-NAME PATH`. See [[Shoryuken SQS CLI]].
