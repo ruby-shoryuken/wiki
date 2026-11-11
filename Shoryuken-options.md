@@ -300,6 +300,11 @@ The executor that runs the workers and, for each processing group, the loop that
 
 When Shoryuken stops, it calls `shutdown`, then `kill` if `wait_for_termination` with the [`timeout`](#timeout) value returns `false`.
 
+These parts of Shoryuken do not run on this executor:
+
+- The start of each processing group's fetch loop. A `Concurrent::Future` on concurrent-ruby's global I/O executor posts the first fetch to this executor. The fetch loop then runs on this executor.
+- With [`auto_visibility_timeout`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#auto_visibility_timeout), the timer that extends a message's visibility timeout. Shoryuken creates a thread for it, one for each message.
+
 ```ruby
 Shoryuken.launcher_executor = MyExecutor.new
 ```
