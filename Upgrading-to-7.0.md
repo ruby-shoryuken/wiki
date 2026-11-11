@@ -15,7 +15,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
   - [Bulk ActiveJob Enqueuing](#bulk-activejob-enqueuing)
   - [ActiveJob Continuations Support](#activejob-continuations-support)
   - [CurrentAttributes Persistence](#currentattributes-persistence)
-  - [Fiber-Local Storage for Logging](#fiber-local-storage-for-logging)
+  - [Logging Context in Fiber Storage](#logging-context-in-fiber-storage)
 - [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases)
 - [Upgrade Steps](#upgrade-steps)
 
@@ -239,7 +239,7 @@ MyJob.perform_later(args)
 
 **Note:** This feature is based on Sidekiq's approach and uses `ActiveJob::Arguments` for serialization.
 
-### Fiber-Local Storage for Logging
+### Logging Context in Fiber Storage
 
 **Enhancement:** Logging context now uses fiber storage (`Fiber[]`) instead of `Thread.current[]`.
 
