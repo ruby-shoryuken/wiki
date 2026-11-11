@@ -8,3 +8,12 @@ Some references on FIFO queues:
 
 * [[FIFO Queues]]
 * [Using Ruby and Amazon SQS FIFO Queues · Pablo Cantero](http://www.pablocantero.com/blog/2017/08/06/using-ruby-and-amazon-sqs-fifo-queues/)
+
+## Keep the visibility timeout longer than your longest job
+
+When a job runs longer than the queue's [visibility timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html), SQS makes the message visible again while the first run is still busy, and Shoryuken runs it again in another thread. Each copy takes a thread and, with ActiveRecord, a database connection. When the database pool is smaller than [`concurrency`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#concurrency), the threads can need more connections than the pool holds, and ActiveRecord raises `could not obtain a connection from the pool`: keep the pool at least as large as `concurrency`.
+
+To keep the message hidden while the job runs, either:
+
+* set the queue's `VisibilityTimeout` above the worst-case run time of the job, or
+* enable [`auto_visibility_timeout`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#auto_visibility_timeout) in the worker's `shoryuken_options`, so that Shoryuken extends the timeout while the job runs. It does not apply to batch workers or to ActiveJob jobs: for them, use the first fix.
