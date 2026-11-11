@@ -23,13 +23,14 @@ Shoryuken::Client.queues('queue.fifo').send_message(
 
 ### Turning off automatic deduplication IDs
 
-Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. Each setting turns off the generated ID for its own send path:
+Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. Each setting turns off one generated ID:
 
 ```ruby
-# perform_async, Queue#send_message and Queue#send_messages
+# Full-body hash: perform_async, Queue#send_message, Queue#send_messages,
+# and ActiveJob when the adapter's ID is off
 Shoryuken.fifo_message_deduplication = false
 
-# ActiveJob adapter
+# ActiveJob adapter's ID (body without job_id and enqueued_at)
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
