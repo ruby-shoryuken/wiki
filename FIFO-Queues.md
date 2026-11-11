@@ -2,7 +2,7 @@ If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWS
 
 ## How does that work?
 
-If you send a message using [`perform_async`](https://github.com/ruby-shoryuken/shoryuken/wiki/Sending-a-message) or [ActiveJob](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job), Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash based on the message body.
+If you send a message using [`perform_async`](https://github.com/ruby-shoryuken/shoryuken/wiki/Sending-a-message) or [ActiveJob](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job), Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the message body (for ActiveJob, without `job_id` and `enqueued_at`).
 
 If you want to set specific values to Message Group ID and Message Deduplication ID, 
 you should use `send_message` instead:
@@ -23,13 +23,14 @@ Shoryuken::Client.queues('queue.fifo').send_message(
 
 ### Turning off automatic deduplication IDs
 
-Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. To stop Shoryuken from generating the ID:
+Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. Each setting turns off one generated ID:
 
 ```ruby
-# perform_async, Queue#send_message and Queue#send_messages
+# Full-body hash: perform_async, Queue#send_message, Queue#send_messages,
+# and ActiveJob when the adapter's ID is off
 Shoryuken.fifo_message_deduplication = false
 
-# ActiveJob adapter
+# ActiveJob adapter's ID (body without job_id and enqueued_at)
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
