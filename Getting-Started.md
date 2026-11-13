@@ -3,7 +3,7 @@
 Shoryuken requires:
 
 - **Ruby 3.3+**
-- **Rails 7.2+** (for Rails/ActiveJob integration)
+- **Rails 8.0 or 8.1** (for Rails/ActiveJob integration)
 - **aws-sdk-sqs >= 1.66**
 
 ## Installation
