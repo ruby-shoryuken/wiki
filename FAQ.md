@@ -15,6 +15,6 @@ SQS can also deliver a message more than once for other reasons, so make the job
 
 ## How do I retry one failed message by hand?
 
-SQS has no call that retries one message. Store the message's body and message attributes, and send them again as a new message when you want to retry it. [Retrying a message by hand](https://github.com/ruby-shoryuken/shoryuken/wiki/Retrying-a-message#retrying-a-message-by-hand) shows the example and what to pass: the message attributes (Shoryuken picks the worker from `shoryuken_class`; without it, it uses the worker registered for the queue), and on a FIFO queue the original group ID and a new deduplication ID.
+SQS has no call that retries one message. Store the message's body and message attributes, and send them again as a new message when you want to retry it. [Retrying a message by hand](https://github.com/ruby-shoryuken/shoryuken/wiki/Retrying-a-message#retrying-a-message-by-hand) shows the example and what to pass: the message attributes, and on a FIFO queue the original group ID and a new deduplication ID.
 
 The original message stays in the queue unless something deletes it, so it also runs again when its visibility timeout ends. To retry it only by hand, call `sqs_msg.delete` after you store it.
