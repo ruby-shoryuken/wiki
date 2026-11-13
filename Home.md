@@ -70,6 +70,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 ## Troubleshooting
 
+- [[FAQ]] - Answers to common questions
 - [[ERROR: No worker found for queue]]
 
 ## Quick links
