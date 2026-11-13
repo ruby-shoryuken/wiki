@@ -1,4 +1,4 @@
-This guide sets up Shoryuken 7.0 with ActiveJob in a Rails 8.0 or 8.1 application.
+This guide sets up Shoryuken with ActiveJob in a Rails 8.0 or 8.1 application.
 
 ## Create SQS queue
 
