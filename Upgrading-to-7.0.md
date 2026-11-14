@@ -170,7 +170,7 @@ This is mostly an internal change, but if you were directly accessing these inte
 **New in Rails 7.1+:** Shoryuken now supports efficient bulk job enqueuing through `ActiveJob.perform_all_later`.
 
 The `enqueue_all` method uses SQS's `send_message_batch` API to enqueue multiple jobs efficiently:
-- Automatically batches jobs in groups of 10 (SQS limit)
+- Automatically batches jobs in groups of 10 (SQS limit); since [#1164](https://github.com/ruby-shoryuken/shoryuken/pull/1164), a batch also holds up to 1 MiB in total
 - Groups jobs by queue name for efficient multi-queue handling
 
 **Usage:**
