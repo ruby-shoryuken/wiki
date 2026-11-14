@@ -73,12 +73,16 @@ Shoryuken::Client.queues(queue_name).send_message(message)
 
 ## Delaying a message
 
-You can delay a message up to 15 minutes. A longer delay raises `Shoryuken::Errors::InvalidDelayError`.
+You can delay a message up to 15 minutes. A longer delay raises `Shoryuken::Errors::InvalidDelayError`. A time in the past or a negative interval sends the message at once (delay 0).
 
 ```ruby
 MyWorker.perform_in(60, 'Pablo') # 60 seconds
 MyWorker.perform_at(Time.now + 300, 'Pablo')
 ```
+
+FIFO queues do not support per-message delays: a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`, and the message is not sent. An interval of 0 or a time in the past still sends.
+
+The inline executor ignores the delay, see [[Shoryuken Inline adapter]].
 
 ## FIFO queues
 
