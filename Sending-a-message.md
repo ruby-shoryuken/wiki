@@ -80,7 +80,7 @@ MyWorker.perform_in(60, 'Pablo') # 60 seconds
 MyWorker.perform_at(Time.now + 300, 'Pablo')
 ```
 
-FIFO queues do not support per-message delays: a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`, and the message is not sent. An interval of 0 or a time in the past still sends.
+FIFO queues do not support per-message delays: a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`, and the message is not sent. A time in the past, a negative interval or an interval of 0 still sends the message.
 
 The inline executor ignores the delay, see [[Shoryuken Inline adapter]].
 
