@@ -23,16 +23,16 @@ The original message stays in the queue unless something deletes it, so it also 
 
 The first enqueue to a queue does setup work that later calls skip:
 
-- The first SQS call builds the client with `Aws::SQS::Client.new`, and the AWS SDK looks up the credentials. When no earlier source in its credential chain has credentials, it tries the EC2 instance metadata service last. Outside EC2, that request waits for its timeout. Set the credentials explicitly: see [[Configure the AWS Client]].
+- When the app does not set `sqs_client`, the first SQS call builds the client with `Aws::SQS::Client.new`, and the AWS SDK looks up the credentials. When no earlier source in its credential chain has credentials, it tries the EC2 instance metadata service last. Outside EC2, that request waits for its timeout. Set the credentials explicitly: see [[Configure the AWS Client]].
 - Shoryuken looks up the queue URL by name (`GetQueueUrl`) and the queue attributes (`GetQueueAttributes`). It caches the queue object per process.
 
 To move this work to boot, call `Shoryuken::Client.queues('my_queue')` in an initializer. After the first call, each `perform_later` sends one `SendMessage` request, so if later calls are also slow, check the network path to SQS.
 
 ## Why does enqueuing fail with "The specified queue default does not exist"?
 
-The adapter sends the job to the queue named by the job's `queue_name`. A job class without `queue_as` uses Active Job's default queue name, `default` (unless you change `config.active_job.default_queue_name`). So the name in the error is the queue that the failing job asked for, not always the queue you expect.
+The adapter sends the job to the queue named by the job's `queue_name`. A job class without `queue_as` uses Active Job's default queue name, `default` (unless you change `config.active_job.default_queue_name`). A mailer's `deliver_later` also uses it when `config.action_mailer.deliver_later_queue_name` is `nil`, which `load_defaults "6.1"` and later set. So the name in the error is the queue that the failing job asked for, not always the queue you expect.
 
-Find the job class that was enqueued, then set its queue with `queue_as`, or create an SQS queue with that name. Check the AWS permissions only when the name in the error is the right one. See [[Rails Integration Active Job]].
+Find the job class that was enqueued, then set its queue with `queue_as` (for mailers, `deliver_later_queue_name`), or create an SQS queue with that name. Check the AWS permissions only when the name in the error is the right one. See [[Rails Integration Active Job]].
 
 ## Should I poll SQS from a job in another job system, or run Shoryuken?
 
@@ -44,5 +44,5 @@ bundle exec shoryuken -R -C config/shoryuken.yml
 
 - A worker gets every message on its queue, also from producers that do not use Shoryuken. Without the `shoryuken_class` attribute, Shoryuken uses the worker registered for the queue. Use [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser) to parse the body.
 - Shoryuken does not set `wait_time_seconds` by default. To use long polling, see [[Long Polling]].
-- To scale, set [`concurrency`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#concurrency) (threads per process) and run more processes. To poll queues independently of each other, use [[Processing Groups]].
+- To scale, set [`concurrency`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#concurrency) (threads per processing group; a process runs the sum of its groups) and run more processes. To poll queues independently of each other, use [[Processing Groups]].
 - To run code around each message, use [[Middleware]].
