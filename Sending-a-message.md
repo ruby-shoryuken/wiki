@@ -19,7 +19,7 @@ MyWorker.perform_async('Pablo')                     # will queue to the worker's
 MyWorker.perform_async('Pablo', queue: 'important') # will queue to the 'important' queue
 ```
 
-A worker with several queues needs `queue:` (see [queue](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#queue) in [[Worker options]]).
+With the default executor, a worker with several queues needs `queue:` (see [queue](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#queue) in [[Worker options]]).
 
 ### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html):
 

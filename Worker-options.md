@@ -50,7 +50,7 @@ Or an array to associate multiple queues to a single worker:
 shoryuken_options queue: %w[queue1 queue2 queue3]
 ```
 
-A worker with several queues needs the `queue:` option when you send to it with `perform_async`, `perform_in` or `perform_at`. Without it, they raise `ArgumentError`:
+A worker with several queues needs the `queue:` option for `perform_async`, `perform_in` and `perform_at` that send to SQS. Without it, they raise `ArgumentError`:
 
 ```ruby
 MyWorker.perform_async(body)                  # ArgumentError: MyWorker has several queues (queue1, queue2, queue3): pass the queue: option to choose one
@@ -58,6 +58,8 @@ MyWorker.perform_async(body, queue: 'queue2') # sends to queue2
 ```
 
 This also applies to a block that returns an array. Shoryuken calls the block once, when `shoryuken_options` runs. An array with one queue sends to that queue. An empty array has no queue: without `queue:`, sending raises `ArgumentError` with `MyWorker has no queue: pass the queue: option`. See [[Sending a message]].
+
+These errors come from the default executor. The inline executor (see [[Shoryuken Inline adapter]]) does not raise them: it runs the job with the `queue` value as it is, an array included.
 
 ### auto_delete
 
