@@ -39,3 +39,8 @@ end
 * On enqueue, the attributes of each registered class are serialized into the message body with `ActiveJob::Arguments`, so Symbols and GlobalID objects (for example ActiveRecord models) work. A class with no attributes set is not added.
 * Before the job runs, the attributes are restored. An attribute the class no longer defines is skipped. If restoring fails, Shoryuken logs a warning and runs the job anyway.
 * After every job, Shoryuken resets all registered classes, so values do not leak to the next job on the same thread.
+* `ShoryukenConcurrentSendAdapter` keeps the attributes too: it reads them on the thread that enqueues the job and sets them for the send.
+
+## Fiber-based apps
+
+A fiber-based app (for example on Falcon) needs `ActiveSupport::IsolatedExecutionState.isolation_level = :fiber`. See [CurrentAttributes in fiber-based apps](https://github.com/ruby-shoryuken/shoryuken/wiki/Fibers-Async#currentattributes-in-fiber-based-apps).
