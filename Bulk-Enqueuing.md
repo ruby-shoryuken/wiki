@@ -37,10 +37,4 @@ jobs = users.map { |user| NotifyUserJob.new(user.id).set(wait: 5.minutes) }
 ActiveJob.perform_all_later(jobs)
 ```
 
-The delays follow the same rules as `perform_later`:
-
-* A `wait_until` in the past sends the job with a delay of 0.
-* A delay over 15 minutes raises `Shoryuken::Errors::InvalidDelayError`.
-* A delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`.
-
-The adapter checks the delays of all jobs, in all queues, first: either error raises before any job is sent. See [[Rails Integration Active Job]] for how to handle these errors.
+The delays follow the same rules and raise the same errors as with `perform_later` (see [Active Job Support](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#active-job-support)). The adapter checks the delays of all jobs, in all queues, first: a delay error raises before any job is sent.
