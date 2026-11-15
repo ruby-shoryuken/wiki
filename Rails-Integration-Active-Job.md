@@ -117,7 +117,7 @@ MyJob.set(message_group_id: 'abc123',
 
 When you enqueue the same job instance again (for example with `job.enqueue` after you change `job.arguments`), the adapter sends the current job. It builds the message body, the delay and the generated FIFO `message_deduplication_id` again for each send. The parameters you set with `.set` still apply. To change one for the next send, pass it to `enqueue`, for example `job.enqueue(message_group_id: 'other')`.
 
-The parameters you set with `.set` do not apply to `ActiveJob.perform_all_later`. See [[Bulk Enqueuing]].
+The SQS parameters you set with `.set` do not apply to `ActiveJob.perform_all_later`. A `wait` or `wait_until` set with `.set` on the job instance applies. See [[Bulk Enqueuing]].
 
 #### FIFO deduplication
 
