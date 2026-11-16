@@ -2,7 +2,7 @@ If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWS
 
 ## How does that work?
 
-If you send a message using [`perform_async`](https://github.com/ruby-shoryuken/shoryuken/wiki/Sending-a-message) or [ActiveJob](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job), Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the message body (for ActiveJob, without `job_id` and `enqueued_at`).
+If you send a message using [[perform_async|Sending a message]] or [[ActiveJob|Rails Integration Active Job]], Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the message body (for ActiveJob, without `job_id` and `enqueued_at`).
 
 If you want to set specific values to Message Group ID and Message Deduplication ID, 
 you should use `send_message` instead:
@@ -42,7 +42,7 @@ You might also consider using the `batch` option to fetch more messages at once,
 
 ## Receiving messages
 
-There's no special configuration needed to receive FIFO messages, you only need to configure the queue in the [same way you would if it was a standard queue](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#queues).
+There's no special configuration needed to receive FIFO messages, you only need to configure the queue in the [[same way you would if it was a standard queue|Shoryuken options#queues]].
 
 ### Process one by one
 

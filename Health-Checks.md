@@ -15,7 +15,7 @@ In the `shoryuken` CLI process, a fatal dispatch error also sends USR1 to the pr
 
 ## HTTP endpoint
 
-Shoryuken has no HTTP server. To expose the check to a load balancer or an orchestrator, start a small server from a [lifecycle event](https://github.com/ruby-shoryuken/shoryuken/wiki/Lifecycle-Events). For example with WEBrick (add the `webrick` gem):
+Shoryuken has no HTTP server. To expose the check to a load balancer or an orchestrator, start a small server from a [[lifecycle event|Lifecycle Events]]. For example with WEBrick (add the `webrick` gem):
 
 ```ruby
 # config/initializers/shoryuken.rb
