@@ -1,4 +1,4 @@
-*Note:* `shoryuken_options` is only available in Shoryuken workers. It isn't supported in [Active Job jobs](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job).
+*Note:* `shoryuken_options` is only available in Shoryuken workers. It isn't supported in [[Active Job jobs|Rails Integration Active Job]].
 
 ## Option validation
 
