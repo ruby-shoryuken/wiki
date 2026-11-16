@@ -137,7 +137,7 @@ Although I strongly recommend setting the [visibility timeout](http://docs.aws.a
 
 When it's enabled, 5 seconds before the message's visibility timeout expires, Shoryuken will reset it to its original value again.
 
-That timeout is the `visibility_timeout` set for the queue or its group in [[sqs_client_receive_message_opts|Receive Message options]], the timeout the message was received with. Without one, it is the queue's `VisibilityTimeout`.
+That timeout is the `visibility_timeout` set for the queue or its group in [`sqs_client_receive_message_opts`](https://github.com/ruby-shoryuken/shoryuken/wiki/Receive-Message-options), the timeout the message was received with. Without one, it is the queue's `VisibilityTimeout`.
 
 > Be generous while configuring the default visibility_timeout for a queue. If your worker in the worst case takes 2 minutes to consume a message, set the visibility_timeout to at least 4 minutes. It doesn't hurt and it will be better than having the same message being consumed more than the expected.
 > http://www.pablocantero.com/blog/2014/11/29/sqs-to-the-rescue/
