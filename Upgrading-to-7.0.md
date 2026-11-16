@@ -119,6 +119,10 @@ MyJob.set(wait: 3.seconds).perform_later
 ```ruby
 # Raises a clear error with guidance
 MyJob.set(wait: 3.seconds).perform_later
+# 7.0.0:
+# => ArgumentError: FIFO queue 'my_queue.fifo' does not support
+#    per-message delays. When using ActiveJob retry_on with FIFO queues, set `wait: 0`.
+# Since 7.0.1:
 # => Shoryuken::Errors::FifoDelayNotSupportedError: FIFO queue 'my_queue.fifo' does not support
 #    per-message delays. When using ActiveJob retry_on with FIFO queues, set `wait: 0`.
 ```
