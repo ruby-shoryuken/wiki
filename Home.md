@@ -30,6 +30,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 - [[Sending a message]] - Enqueuing messages and jobs
 - [[Retrying a message]] - Retry strategies and exponential backoff
 - [[Middleware]] - Server middleware for cross-cutting concerns
+- [[Fibers Async]] - Send messages from fibers and run Async inside jobs
 - [[Lifecycle Events]] - Hooks for startup, shutdown and other events
 - [[Scheduled Jobs]] - Recurring jobs with AWS services
 
