@@ -39,4 +39,4 @@ The default formatter writes the UTC time, the process ID, the thread ID and the
 
 ## AWS SDK log lines
 
-Lines like `[Aws::SQS::Client 200 ...] receive_message(...)` come from the AWS SDK logger, not from Shoryuken. See [[Too many "receive_message(...)" in the log file?]].
+Lines like `[Aws::SQS::Client 200 ...] receive_message(...)` come from the AWS SDK logger, not from Shoryuken. See [[Too many receive_message calls in the log]].
