@@ -119,7 +119,7 @@ MyJob.set(message_group_id: 'abc123',
 
 When you enqueue the same job instance again (for example with `job.enqueue` after you change `job.arguments`), the adapter sends the current job. It builds the message body, the delay and the generated FIFO `message_deduplication_id` again for each send. The parameters you set with `.set` still apply. To change one for the next send, pass it to `enqueue`, for example `job.enqueue(message_group_id: 'other')`.
 
-A `retry_on` retry and an [[ActiveJob Continuations]] resume keep the `message_group_id` and the custom `message_attributes` of the message the job was received from. So on a FIFO queue, the retry or resume stays in the job's message group. The `message_deduplication_id` is not kept: the retry or resume gets a new one.
+A `retry_on` retry and an [[ActiveJob Continuations]] resume keep the `message_group_id` and the custom `message_attributes` of the message the job was received from. So on a FIFO queue, the retry or resume stays in the job's message group. The `message_deduplication_id` is not kept. On a FIFO queue, the retry or resume gets a generated one while either deduplication setting is `true` (the default, see [FIFO deduplication](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#fifo-deduplication)). With both settings at `false`, it is sent without one, also when the first send had one from `.set`, so the queue needs `ContentBasedDeduplication`.
 
 The SQS parameters you set with `.set` do not apply to `ActiveJob.perform_all_later`. A `wait` or `wait_until` set with `.set` on the job instance applies. See [[Bulk Enqueuing]].
 
