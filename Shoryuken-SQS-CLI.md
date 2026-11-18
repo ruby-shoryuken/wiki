@@ -14,7 +14,7 @@ An unknown command, an unknown option or an extra argument prints an error, for 
 
 ## Queue names and the endpoint
 
-The commands take a queue name, not a queue URL. Shoryuken looks up the URL of the name. On SQS, an unknown name fails with `The specified queue <name> does not exist`.
+The commands take a queue name, not a queue URL. Shoryuken looks up the URL of the name. In `dump`, `requeue`, `mv`, `purge` and `delete`, an unknown name fails with `[FAIL] The specified queue <name> does not exist` and exit status 1, on SQS and on ElasticMQ.
 
 An argument after `--` that starts with `-` fails with `Unknown switches`. So `shoryuken sqs purge -- -queue` does not reach a queue named `-queue`.
 
@@ -96,7 +96,7 @@ Receives the messages of the source queue and sends them to the target queue.
 | `-n`, `--number` | all | The number of messages to move |
 | `-d`, `--delete` | `true` | Deletes the moved messages from the source queue. Use `--no-delete` to keep them |
 
-`--number` must be at least 1, else `mv` fails with `Number of messages must be at least 1, got <n>` before it receives any message.
+`--number` must be at least 1, else `mv` fails with `Number of messages must be at least 1, got <n>` before it receives any message. `mv` also looks up both queues before it receives any message, so a missing target queue fails without putting the source messages in flight.
 
 When the target queue rejects a message, `mv` prints `Could not requeue <id>, code: <code>` for it and does not delete it from the source queue. The `Moved <n> messages` line counts only the accepted messages. `mv` then prints `Could not move <n> messages, they stay in <source>` and exits with status 1.
 

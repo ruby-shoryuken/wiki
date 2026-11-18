@@ -269,7 +269,7 @@ With `cache_visibility_timeout` enabled, every time you change the visibility ti
 
 Default: `false`
 
-Set it to `true` to apply the ActiveJob `queue_name_prefix` to the queue names Shoryuken reads from. See [[Rails Integration Active Job]].
+Set it to `true` to apply the ActiveJob `queue_name_prefix` to the queue names Shoryuken reads from. A queue given as a URL (with any scheme, such as the `http://` URLs of ElasticMQ and LocalStack) or an ARN is used as given, without the prefix. See [[Rails Integration Active Job]].
 
 ```ruby
 Shoryuken.active_job_queue_name_prefixing = true

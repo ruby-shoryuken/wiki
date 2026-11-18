@@ -4,7 +4,7 @@ Shoryuken supports ActiveJob Continuations (Rails 8.1+). A continuable job runs 
 
 Rails asks the queue adapter whether the worker is shutting down. The Shoryuken adapter answers with `stopping?`, which is `true` once the Shoryuken launcher starts to stop: after `USR1`, `TSTP`, `TERM` or `INT` (see [[Signals]]).
 
-When the job is enqueued again to resume, the adapter sends it like any other job. A resume time in the past is delivered at once.
+When the job is enqueued again to resume, the adapter sends it like any other job. A resume time in the past is delivered at once. The resume keeps the `message_group_id` and the custom `message_attributes` of the message the job was received from, and gets a new `message_deduplication_id` (see [[Rails Integration Active Job]]).
 
 ## Things to keep in mind
 
