@@ -44,9 +44,7 @@ An error raised by a handler is logged as a warning and does not stop the other 
 
 ## `on_start` and `on_stop`
 
-Shoryuken also has `on_start` and `on_stop` (`Shoryuken.on_start { ... }`, or `config.on_start { ... }` inside `configure_server`). Prefer `config.on(:startup)` and `config.on(:shutdown)`: they keep several handlers, log a raised error as a warning instead of stopping the start, and work like the other events.
-
-How `on_start` and `on_stop` differ from `config.on`:
+Shoryuken also has `on_start` and `on_stop` (`Shoryuken.on_start { ... }`, or `config.on_start { ... }` inside `configure_server`). Prefer `config.on(:startup)` and `config.on(:shutdown)`, the same API as the other events. `on_start` and `on_stop` differ from `config.on`:
 
 - Each keeps one block. A second call replaces the first.
 - The block gets no argument.
