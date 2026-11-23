@@ -51,7 +51,7 @@ class ProcessPhotoJob < ActiveJob::Base
 end
 ```
 
-*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues. The limit also applies to `retry_on` waits, where a longer wait makes the job run again on each receive while it keeps failing, see [`retry_on` waits over 15 minutes](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#retry_on-waits-over-15-minutes).
+*Note:* When queueing jobs to be performed in the future (e.g. when setting the `wait` or `wait_until` Active Job options), SQS limits the amount of time to 15 minutes (see [`delay_seconds`](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html#send_message-instance_method)). A longer delay raises `Shoryuken::Errors::InvalidDelayError`; to handle it, rescue `Shoryuken::Errors::InvalidDelayError` or `Shoryuken::Errors::BaseError`. A `wait_until` in the past sends the job at once (delay 0), on standard and FIFO queues. The limit also applies to `retry_on` waits, where a longer wait makes the job run again on each receive while it keeps failing, see [[retry_on waits over 15 minutes|Rails Integration Active Job#retry_on-waits-over-15-minutes]].
 
 *Note:* FIFO queues do not support per-message delays. A job with a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`. With `retry_on` on a FIFO queue, set `wait: 0`.
 
@@ -119,7 +119,7 @@ MyJob.set(message_group_id: 'abc123',
 
 When you enqueue the same job instance again (for example with `job.enqueue` after you change `job.arguments`), the adapter sends the current job. It builds the message body, the delay and the generated FIFO `message_deduplication_id` again for each send. The parameters you set with `.set` still apply. To change one for the next send, pass it to `enqueue`, for example `job.enqueue(message_group_id: 'other')`.
 
-A `retry_on` retry and an [[ActiveJob Continuations]] resume keep the `message_group_id` and the custom `message_attributes` of the message the job was received from. The `message_deduplication_id` is not kept. On a FIFO queue, the retry or resume gets a generated one while `Shoryuken.active_job_fifo_message_deduplication` or `Shoryuken.fifo_message_deduplication` is `true` (both default to `true`, see [FIFO deduplication](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#fifo-deduplication)). With both at `false`, it is sent without one, also when the first send had one from `.set`, so the queue needs `ContentBasedDeduplication`.
+A `retry_on` retry and an [[ActiveJob Continuations]] resume keep the `message_group_id` and the custom `message_attributes` of the message the job was received from. The `message_deduplication_id` is not kept. On a FIFO queue, the retry or resume gets a generated one while `Shoryuken.active_job_fifo_message_deduplication` or `Shoryuken.fifo_message_deduplication` is `true` (both default to `true`, see [[FIFO deduplication|Rails Integration Active Job#fifo-deduplication]]). With both at `false`, it is sent without one, also when the first send had one from `.set`, so the queue needs `ContentBasedDeduplication`.
 
 The SQS parameters you set with `.set` do not apply to `ActiveJob.perform_all_later`. A `wait` or `wait_until` set with `.set` on the job instance applies. See [[Bulk Enqueuing]].
 
@@ -160,7 +160,7 @@ class MyJob < ActiveJob::Base
 end
 ```
 
-On a FIFO queue, the move to the DLQ breaks the order of the message group, see [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues#failures-and-dead-letter-queues).
+On a FIFO queue, the move to the DLQ breaks the order of the message group, see [[FIFO Queues|FIFO Queues#failures-and-dead-letter-queues]].
 
 #### `retry_on` waits over 15 minutes
 

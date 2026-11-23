@@ -19,7 +19,7 @@ The `body_parser` value is checked on the worker's options merged with `Shoryuke
 
 The known worker option keys are [`queue`](#queue), `delete` (an alias of [`auto_delete`](#auto_delete)), [`auto_delete`](#auto_delete), [`auto_visibility_timeout`](#auto_visibility_timeout), [`retry_intervals`](#retry_intervals), [`batch`](#batch), [`body_parser`](#body_parser) and [`non_retryable_exceptions`](#non_retryable_exceptions).
 
-This applies to worker options only. An unknown global or group key only logs a warning (see [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#option-validation) in [[Shoryuken options]]). For what to check before you upgrade, see [[Upgrading to 7.0]].
+This applies to worker options only. An unknown global or group key only logs a warning (see [[Option validation|Shoryuken options#option-validation]] in [[Shoryuken options]]). For what to check before you upgrade, see [[Upgrading to 7.0]].
 
 ## Options
 
@@ -125,7 +125,7 @@ The same forms apply to [`batch`](#batch) workers, where each message gets its o
 
 Any other value (for example `:JSON`, `'json'` or `JSON.method(:parse)`) raises an error when the worker class loads (see [Option validation](#option-validation)).
 
-Shoryuken parses the body before the server middleware chain runs. When the parser raises (for example `JSON::ParserError` with `body_parser: :json`), no server middleware runs and `perform` is not called, so [`non_retryable_exceptions`](#non_retryable_exceptions) and [`retry_intervals`](#retry_intervals) do not apply. The error goes to [`exception_handlers`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#exception_handlers), and the message is not deleted: it is received again after its visibility timeout, or moves to the dead-letter queue by the queue's redrive policy. In a batch worker, the bodies of all messages are parsed before `perform`, so one body that fails to parse fails every message of the batch.
+Shoryuken parses the body before the server middleware chain runs. When the parser raises (for example `JSON::ParserError` with `body_parser: :json`), no server middleware runs and `perform` is not called, so [`non_retryable_exceptions`](#non_retryable_exceptions) and [`retry_intervals`](#retry_intervals) do not apply. The error goes to [[exception_handlers|Shoryuken options#exception_handlers]], and the message is not deleted: it is received again after its visibility timeout, or moves to the dead-letter queue by the queue's redrive policy. In a batch worker, the bodies of all messages are parsed before `perform`, so one body that fails to parse fails every message of the batch.
 
 For a queue that can get bodies that your parser rejects, use `:text` and parse the body in `perform`, where you can handle the error for each message.
 
@@ -137,12 +137,12 @@ Although I strongly recommend setting the [visibility timeout](http://docs.aws.a
 
 When it's enabled, 5 seconds before the message's visibility timeout expires, Shoryuken will reset it to its original value again.
 
-That timeout is the `visibility_timeout` set for the queue or its group in [`sqs_client_receive_message_opts`](https://github.com/ruby-shoryuken/shoryuken/wiki/Receive-Message-options), the timeout the message was received with. Without one, it is the queue's `VisibilityTimeout`.
+That timeout is the `visibility_timeout` set for the queue or its group in [[sqs_client_receive_message_opts|Receive Message options]], the timeout the message was received with. Without one, it is the queue's `VisibilityTimeout`.
 
 > Be generous while configuring the default visibility_timeout for a queue. If your worker in the worst case takes 2 minutes to consume a message, set the visibility_timeout to at least 4 minutes. It doesn't hurt and it will be better than having the same message being consumed more than the expected.
 > http://www.pablocantero.com/blog/2014/11/29/sqs-to-the-rescue/
 
-*Note:* This feature isn't supported when using [`batch=true`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch).
+*Note:* This feature isn't supported when using [[batch=true|Worker options#batch]].
 
 
 ### retry_intervals
@@ -153,7 +153,7 @@ If a worker raises an exception while consuming a message, and does not delete t
 
 But if you want to increase or decrease the next time a failing message will be available to be consumed again, you can use `retry_intervals` to implement an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff).
 
-*Note:* This feature isn't supported when using [`batch=true`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch).
+*Note:* This feature isn't supported when using [[batch=true|Worker options#batch]].
 
 ```ruby
 shoryuken_options retry_intervals: [300, 1200, 3600] # 5.minutes, 20.minutes and 1.hour
@@ -162,7 +162,7 @@ shoryuken_options retry_intervals: ->(attempts) { calculate_next_attempt_interva
 
 `attempts` is the message's `ApproximateReceiveCount`. With an array, the first failure uses the first interval, the second failure the second one, and so on. When the attempts outnumber the intervals, Shoryuken uses the last interval. A lambda that returns `nil` (or `false`) does not retry the message with a backoff: it becomes visible again after the queue's visibility timeout. A lambda that raises is handled the same way: Shoryuken logs `retry_intervals raised for <message id>: <error class>: <message>` and raises the worker's error again.
 
-A failure that is retried with backoff is logged and does not reach [`exception_handlers`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#exception_handlers).
+A failure that is retried with backoff is logged and does not reach [[exception_handlers|Shoryuken options#exception_handlers]].
 
 Keep in mind that Amazon SQS does not officially support exponential backoff, it's something implemented in Shoryuken using the [visibility Timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html), which can be extended to up to 12 hours. If your interval exceeds the 12 hour maximum, Shoryuken will automatically cap it to the maximum allowed.
 
