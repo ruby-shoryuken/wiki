@@ -36,7 +36,7 @@ By default, the SQS body is the SNS notification, a JSON document:
 - The published message is a String in its `Message` field.
 - The SNS message attributes are in its `MessageAttributes` field, each as a `{"Type" => ..., "Value" => ...}` Hash. `sqs_msg.message_attributes` is empty.
 
-With `body_parser: :json`, `perform` gets this whole notification. For a queue that cannot use raw message delivery, use a Proc as the [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser). This one gives `perform` the published JSON, the attribute values and the topic ARN:
+With `body_parser: :json`, `perform` gets this whole notification. For a queue that cannot use raw message delivery, use a Proc as the [[body_parser|Worker options#body_parser]]. This one gives `perform` the published JSON, the attribute values and the topic ARN:
 
 ```ruby
 SNS_ENVELOPE = lambda do |sqs_msg|
@@ -57,7 +57,7 @@ class OrderAnalyticsWorker
 end
 ```
 
-This parser raises when the body or its `Message` is not JSON. For what happens to the message then, see [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
+This parser raises when the body or its `Message` is not JSON. For what happens to the message then, see [[body_parser|Worker options#body_parser]].
 
 ## Several event types on one queue
 
