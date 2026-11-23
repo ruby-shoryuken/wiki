@@ -59,4 +59,4 @@ Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to US
 
 ## Shutdown
 
-Set `timeout` below the time your platform waits before it kills the process. See [[Signals]].
+Set `timeout` below the time your platform waits before it kills the process. With [[Long Polling]], a graceful stop (`USR1`, `TSTP`) can also take up to `wait_time_seconds` before the `timeout` window starts, so the platform's wait must cover both. See [[Signals]].
