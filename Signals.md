@@ -39,7 +39,7 @@ kill -USR1 [shoryuken_pid]
 
 The wait for busy workers in a graceful stop (USR1 and TSTP) is also limited by `timeout`: workers that do not finish within it are killed, so a hung worker cannot block the shutdown.
 
-Before the `timeout` window starts, a graceful stop waits for a running `ReceiveMessage` call to return. With [[Long Polling]], that call takes up to `wait_time_seconds`. In a test with an idle queue, `wait_time_seconds: 20` and `timeout: 8`, the graceful stop took 17.04 seconds. TERM and INT do not wait for the call.
+Before the `timeout` window starts, a graceful stop waits for a running `ReceiveMessage` call to return. With [[Long Polling]], that call takes up to the long poll wait (`wait_time_seconds`, or the queue's `ReceiveMessageWaitTimeSeconds` when Shoryuken sends none). In a test with an idle queue, `wait_time_seconds: 20` and `timeout: 8`, the graceful stop took 17.04 seconds. TERM and INT do not wait before the `timeout` window: inside it, the running call counts like a busy worker and is stopped when `timeout` ends.
 
 ## TERM
 
