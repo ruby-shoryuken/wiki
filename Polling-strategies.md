@@ -76,7 +76,8 @@ class MyStrategy < Shoryuken::Polling::BaseStrategy
   # Called after each fetch with the number of messages received
   def messages_found(queue, messages_found); end
 
-  # Optional: called after a message is processed
+  # Optional: called only for FIFO queues, when processing of a message
+  # (or batch) ends, whether the worker succeeds or raises
   def message_processed(queue); end
 
   # Return the queues that are not paused
