@@ -10,7 +10,7 @@ The `shoryuken sqs` commands manage SQS queues from the command line. To list th
 | `create QUEUE-NAME` | Creates a queue |
 | `delete QUEUE-NAME` | Deletes a queue |
 
-An unknown command, an unknown option or an extra argument prints an error, for example `Could not find command "bogus"`, `Unknown switches "--bogus"` or `ERROR: "shoryuken sqs ls" was called with arguments ["a", "b"]`, and exits with status 1. See [CLI options](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#cli-options) in [[Shoryuken options]].
+An unknown command, an unknown option or an extra argument prints an error, for example `Could not find command "bogus"`, `Unknown switches "--bogus"` or `ERROR: "shoryuken sqs ls" was called with arguments ["a", "b"]`, and exits with status 1. See [[CLI options|Shoryuken options#cli-options]] in [[Shoryuken options]].
 
 ## Queue names and the endpoint
 

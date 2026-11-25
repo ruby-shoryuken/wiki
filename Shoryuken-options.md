@@ -290,7 +290,7 @@ Shoryuken.active_job_fifo_message_deduplication = false
 
 Default: `nil`
 
-The executor that runs the workers and, for each processing group, the loop that fetches messages and hands them to the workers. With `nil`, Shoryuken uses its own `Concurrent::CachedThreadPool`. It does not have to be a concurrent-ruby executor (see [Changes in 7.0.x Patch Releases](https://github.com/ruby-shoryuken/shoryuken/wiki/Upgrading-to-7.0#changes-in-70x-patch-releases)). Any object with these methods works:
+The executor that runs the workers and, for each processing group, the loop that fetches messages and hands them to the workers. With `nil`, Shoryuken uses its own `Concurrent::CachedThreadPool`. It does not have to be a concurrent-ruby executor (see [[Changes in 7.0.x Patch Releases|Upgrading to 7.0#changes-in-70x-patch-releases]]). Any object with these methods works:
 
 - `post { ... }` runs the block on another thread and returns without waiting for it. To reject the block, it raises `Concurrent::RejectedExecutionError`. When it rejects a worker's block, Shoryuken makes the message visible again. When it rejects a fetch loop's block, the processing group stops fetching messages. An executor that runs the block in the calling thread overflows the stack, because each fetch posts the next fetch from inside its block.
 - `running?` returns `false` once the executor is shut down.
@@ -303,7 +303,7 @@ When Shoryuken stops, it calls `shutdown`, then `kill` if `wait_for_termination`
 These parts of Shoryuken do not run on this executor:
 
 - The start of each processing group's fetch loop. A `Concurrent::Future` on concurrent-ruby's global I/O executor posts the first fetch to this executor. The fetch loop then runs on this executor.
-- With [`auto_visibility_timeout`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#auto_visibility_timeout), the timer that extends a message's visibility timeout. Shoryuken creates a thread for it, one for each message.
+- With [[auto_visibility_timeout|Worker options#auto_visibility_timeout]], the timer that extends a message's visibility timeout. Shoryuken creates a thread for it, one for each message.
 
 ```ruby
 Shoryuken.launcher_executor = MyExecutor.new
@@ -332,16 +332,16 @@ See [[Middleware]] and [[Lifecycle Events]].
 
 ### exception_handlers
 
-Each handler is called with the exception, the queue name and the SQS message when an error is raised while Shoryuken processes a message: always for an error of the body parser, and for an error of the server middleware or `perform` when no server middleware handles it (see [[Middleware]]). For a [`batch`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch) worker, the SQS message is an Array of the messages of the batch. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
+Each handler is called with the exception, the queue name and the SQS message when an error is raised while Shoryuken processes a message: always for an error of the body parser, and for an error of the server middleware or `perform` when no server middleware handles it (see [[Middleware]]). For a [[batch|Worker options#batch]] worker, the SQS message is an Array of the messages of the batch. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
 
 Some errors that a worker raises are handled by a server middleware, so the handlers are not called for them:
 
-- A failure that [`retry_intervals`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) retries with backoff. Shoryuken logs `Message <id> will attempt retry due to error: <message>` at WARN level and the backtrace at DEBUG level.
-- An error that [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
+- A failure that [[retry_intervals|Worker options#retry_intervals]] retries with backoff. Shoryuken logs `Message <id> will attempt retry due to error: <message>` at WARN level and the backtrace at DEBUG level.
+- An error that [[non_retryable_exceptions|Worker options#non_retryable_exceptions]] matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
 
 With `retry_intervals` set, the handlers are still called when the message is not retried with backoff: the interval for the attempt is `nil` or `false` (for example, a lambda that returns `nil`), Shoryuken cannot change the message's visibility timeout, or the worker is a batch worker (backoff does not apply to batches).
 
-Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
+Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [[body_parser|Worker options#body_parser]].
 
 ```ruby
 Shoryuken.configure_server do |config|
