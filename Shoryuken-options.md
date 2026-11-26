@@ -77,6 +77,7 @@ It fails with `[FAIL]` on:
 - An invalid option value (see [Option validation](#option-validation))
 - `-d` without `-L`
 - A `-r` path that does not exist
+- A `polling_strategy` name that resolves to no class: in a group, or the global `polling_strategy` when `queues` is set (see [[Polling strategies]])
 - An unknown worker option key, or an unsupported `body_parser` value even when it comes from `Shoryuken.default_worker_options` (see [[Worker options]])
 - A queue that does not exist
 - Missing AWS credentials or region
@@ -91,7 +92,7 @@ To list its options: `shoryuken help check`.
 
 When `shoryuken start` or `shoryuken check` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
 
-An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
+An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. `shoryuken start` prints it to stderr as `[FAIL] <message> (<error class>)`, without a backtrace, and exits with status 1. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
 
 | Option | Valid values |
 |--------|--------------|

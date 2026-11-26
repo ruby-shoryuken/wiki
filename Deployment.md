@@ -59,4 +59,4 @@ Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to US
 
 ## Shutdown
 
-Set `timeout` below the time your platform waits before it kills the process. If you send `USR1` or `TSTP` before the platform kills the process, with [[Long Polling]] that graceful stop can also take up to the long poll wait (`wait_time_seconds`, or the queue's `ReceiveMessageWaitTimeSeconds` when Shoryuken sends none) before the `timeout` window starts, so the platform's wait must cover both. See [[Signals]].
+Set `timeout` below the time your platform waits before it kills the process. If you send `USR1` or `TSTP` before the platform kills the process, with [[Long Polling]] that graceful stop can also take up to the long poll wait (`wait_time_seconds`, or the queue's `ReceiveMessageWaitTimeSeconds` when Shoryuken sends none) before the `timeout` window starts. A `TERM` or `INT` sent during that graceful stop still stops the process within `timeout`. See [[Signals]].
