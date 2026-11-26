@@ -4,6 +4,8 @@
 # Only external http(s) URLs; relative links and [[wiki links]] are not checked.
 scheme = ["https", "http"]
 include_wikilinks = false
+# URLs in code blocks and inline code are checked too, so placeholders must be excluded.
+include_verbatim = true
 
 # Rate limits (429) must not fail the job.
 accept = ["200..=299", "429"]
