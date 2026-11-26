@@ -39,9 +39,11 @@ kill -USR1 [shoryuken_pid]
 
 The wait for busy workers in a graceful stop (USR1 and TSTP) is also limited by `timeout`: workers that do not finish within it are killed, so a hung worker cannot block the shutdown.
 
+Before the `timeout` window starts, a graceful stop waits for a running `ReceiveMessage` call to return. With [[Long Polling]], that call takes up to the long poll wait (`wait_time_seconds`, or the queue's `ReceiveMessageWaitTimeSeconds` when Shoryuken sends none).
+
 ## TERM
 
-TERM tells Shoryuken to hard shutdown within a `timeout`. Any processors that do not finish within the timeout are hard terminated and their messages are pushed back to AWS SQS. The timeout defaults to 8 seconds since all Heroku processes must exit within 10 seconds.
+TERM tells Shoryuken to hard shutdown within a `timeout`. Any processors that do not finish within the timeout are hard terminated and their messages are pushed back to AWS SQS. TERM does not wait for a running `ReceiveMessage` call before the `timeout` starts: the call counts like a busy worker and is stopped when `timeout` ends. The timeout defaults to 8 seconds since all Heroku processes must exit within 10 seconds.
 
 The `timeout` can be defined through the `-t` option or in the `-C shoryuken.yml` config by setting the `timeout: N` value.
 

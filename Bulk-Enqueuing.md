@@ -37,4 +37,4 @@ jobs = users.map { |user| NotifyUserJob.new(user.id).set(wait: 5.minutes) }
 ActiveJob.perform_all_later(jobs)
 ```
 
-The delays follow the same rules and raise the same errors as with `perform_later` (see [Active Job Support](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job#active-job-support)). The adapter checks the delays of all jobs, in all queues, first: a delay error raises before any job is sent.
+The delays follow the same rules and raise the same errors as with `perform_later` (see [[Active Job Support|Rails Integration Active Job#active-job-support]]). The adapter checks the delays of all jobs, in all queues, first: a delay error raises before any job is sent.

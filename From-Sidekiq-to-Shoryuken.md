@@ -118,6 +118,6 @@ See [[Rails Integration Active Job]].
 ## Things to check
 
 * **Queues must exist.** Shoryuken does not create queues. At startup it raises `Shoryuken::Errors::QueueNotFoundError` for a configured queue that does not exist. Create them with `shoryuken sqs create QUEUE-NAME` or in AWS.
-* **Retries.** A failed message comes back after the queue's visibility timeout. Use [`retry_intervals`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) for backoff and [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) to drop messages that must not be retried. See [[Retrying a message]].
+* **Retries.** A failed message comes back after the queue's visibility timeout. Use [[retry_intervals|Worker options#retry_intervals]] for backoff and [[non_retryable_exceptions|Worker options#non_retryable_exceptions]] to drop messages that must not be retried. See [[Retrying a message]].
 * **Delays.** `perform_in` and `perform_at` accept up to 15 minutes. See [[Sending a message]].
 * **IAM.** The process needs SQS permissions. See [[Amazon SQS IAM Policy for Shoryuken]].
