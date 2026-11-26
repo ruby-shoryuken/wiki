@@ -1,6 +1,6 @@
 Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
-**Requirements:** Ruby 3.3+ | Rails 7.2+ (for ActiveJob) | aws-sdk-sqs >= 1.66
+**Requirements:** Ruby 3.3+ | Rails 8.0 or 8.1 (for ActiveJob) | aws-sdk-sqs >= 1.66
 
 ## Getting started
 
@@ -29,6 +29,7 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 - [[Sending a message]] - Enqueuing messages and jobs
 - [[Retrying a message]] - Retry strategies and exponential backoff
+- [[SNS to SQS Fan out]] - Process messages that an SNS topic sends to SQS queues
 - [[Middleware]] - Server middleware for cross-cutting concerns
 - [[Fibers Async]] - Send messages from fibers and run Async inside jobs
 - [[Lifecycle Events]] - Hooks for startup, shutdown and other events
@@ -71,7 +72,9 @@ Shoryuken is a super-efficient AWS SQS thread-based message processor for Ruby.
 
 ## Troubleshooting
 
+- [[FAQ]] - Answers to common questions
 - [[ERROR: No worker found for queue]]
+- [[Too many receive_message calls in the log]]
 
 ## Quick links
 

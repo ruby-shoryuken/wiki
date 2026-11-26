@@ -2,7 +2,7 @@ If you use standard Shoryuken workers by `include Shoryuken::Worker`, and do not
 
 Example:
 
-```sh
+```shell
 bundle exec shoryuken \
         -R \
         -P /var/app/containerfiles/pids/shoryuken.pid \
@@ -12,4 +12,4 @@ bundle exec shoryuken \
         -d
 ```
 
-Also check that the queue name in `shoryuken.yml` matches the worker's `shoryuken_options queue:`. When ActiveJob is not loaded, Shoryuken logs `No worker supplied for <queue>` at start for each queue that has no worker. `shoryuken check` reports the same message and exits with status 1 (see [Check the configuration](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#check-the-configuration)).
+Also check that the queue name in `shoryuken.yml` matches the worker's `shoryuken_options queue:`. When ActiveJob is not loaded, Shoryuken logs `No worker supplied for <queue>` at start for each queue that has no worker. `shoryuken check` reports the same message and exits with status 1 (see [[Check the configuration|Shoryuken options#check-the-configuration]]).

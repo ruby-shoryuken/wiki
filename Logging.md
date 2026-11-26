@@ -1,6 +1,7 @@
 Shoryuken's default logger level is `INFO`.
 
 ## Logging in application
+
 ```ruby
 Shoryuken.logger.info("Info-level log message")
 ```
@@ -13,7 +14,7 @@ You can pass `-v` while starting Shoryuken.
 shoryuken -v
 ```
 
-### Other levels 
+### Other levels
 
 See [available levels](https://ruby-doc.org/3.4/stdlibs/logger/Logger/Severity.html).
 
@@ -39,4 +40,4 @@ The default formatter writes the UTC time, the process ID, the thread ID and the
 
 ## AWS SDK log lines
 
-Lines like `[Aws::SQS::Client 200 ...] receive_message(...)` come from the AWS SDK logger, not from Shoryuken. See [[Too many "receive_message(...)" in the log file?]].
+Lines like `[Aws::SQS::Client 200 ...] receive_message(...)` come from the AWS SDK logger, not from Shoryuken. See [[Too many receive_message calls in the log]].

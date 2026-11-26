@@ -3,7 +3,7 @@
 Shoryuken requires:
 
 - **Ruby 3.3+**
-- **Rails 7.2+** (for Rails/ActiveJob integration)
+- **Rails 8.0 or 8.1** (for Rails/ActiveJob integration)
 - **aws-sdk-sqs >= 1.66**
 
 ## Installation
@@ -23,8 +23,6 @@ bundle install
 ## AWS configuration
 
 Shoryuken uses the AWS SDK for Ruby and its usual credential sources. See [[Configure the AWS Client]].
-
----
 
 ## Plain Ruby
 
@@ -63,8 +61,6 @@ require_relative 'hello_worker'
 
 HelloWorker.perform_async('Ken')
 ```
-
----
 
 ## Rails
 
@@ -112,8 +108,6 @@ The `-R` flag loads your Rails application. For middleware and other settings, s
 HelloJob.perform_later('Ken')
 ```
 
----
-
 ## Configuration file
 
 For more complex setups, create a configuration file:
@@ -139,7 +133,6 @@ To validate the configuration, the queues and the workers without starting to pr
 bundle exec shoryuken check -R -C config/shoryuken.yml
 ```
 
-It prints `Configuration OK` and exits with status 0. On a problem it exits with status 1, and for the failures listed in [Check the configuration](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#check-the-configuration) it prints `[FAIL]` with the problem.
+It prints `Configuration OK` and exits with status 0. On a problem it exits with status 1, and for the failures listed in [[Check the configuration|Shoryuken options#check-the-configuration]] it prints `[FAIL]` with the problem.
 
 See [[Shoryuken options]] for all available configuration options.
-

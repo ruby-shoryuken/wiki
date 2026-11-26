@@ -6,16 +6,16 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 
 - [Ruby and Rails Version Requirements](#ruby-and-rails-version-requirements)
 - [Breaking Changes](#breaking-changes)
-  - [New Error Class Hierarchy](#new-error-class-hierarchy)
-  - [Shoryuken::Shutdown Removed](#shoryukenshutdown-removed)
-  - [FIFO Queue Delay Validation](#fifo-queue-delay-validation)
-  - [Core Class Extensions Removed](#core-class-extensions-removed)
-  - [Concurrent-Ruby Replaced](#concurrent-ruby-replaced)
+    - [New Error Class Hierarchy](#new-error-class-hierarchy)
+    - [Shoryuken::Shutdown Removed](#shoryukenshutdown-removed)
+    - [FIFO Queue Delay Validation](#fifo-queue-delay-validation)
+    - [Core Class Extensions Removed](#core-class-extensions-removed)
+    - [Concurrent-Ruby Replaced](#concurrent-ruby-replaced)
 - [New Features](#new-features)
-  - [Bulk ActiveJob Enqueuing](#bulk-activejob-enqueuing)
-  - [ActiveJob Continuations Support](#activejob-continuations-support)
-  - [CurrentAttributes Persistence](#currentattributes-persistence)
-  - [Fiber-Local Storage for Logging](#fiber-local-storage-for-logging)
+    - [Bulk ActiveJob Enqueuing](#bulk-activejob-enqueuing)
+    - [ActiveJob Continuations Support](#activejob-continuations-support)
+    - [CurrentAttributes Persistence](#currentattributes-persistence)
+    - [Logging Context in Fiber Storage](#logging-context-in-fiber-storage)
 - [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases)
 - [Upgrade Steps](#upgrade-steps)
 
@@ -26,6 +26,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 **Breaking:** Shoryuken 7.0 requires Ruby 3.2.0 or higher. Ruby 3.1 reached end-of-life in March 2025 and is no longer supported.
 
 **Supported Ruby versions:**
+
 - Ruby 3.2
 - Ruby 3.3
 - Ruby 3.4
@@ -40,6 +41,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 **Breaking:** Shoryuken 7.0 requires Rails 7.2 or higher. Rails 7.0 and 7.1 reached end-of-life in April 2025.
 
 **Supported Rails versions:**
+
 - Rails 7.2
 - Rails 8.0
 - Rails 8.1
@@ -62,12 +64,13 @@ All Shoryuken errors now inherit from `Shoryuken::Errors::BaseError`:
 - `Shoryuken::Errors::InvalidPollingStrategyError` - Raised for invalid polling strategy configuration
 - `Shoryuken::Errors::InvalidEventError` - Raised for invalid lifecycle event names
 - `Shoryuken::Errors::InvalidDelayError` - Raised by `perform_in` and `perform_at` when a delay exceeds the SQS 15-minute maximum. In 7.0.0 to 7.0.4 the ActiveJob adapter raises a `RuntimeError` for this; since [#1091](https://github.com/ruby-shoryuken/shoryuken/pull/1091) it raises `Shoryuken::Errors::InvalidDelayError` (see [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases))
-- `Shoryuken::Errors::FifoDelayNotSupportedError` - Raised when a delay is used with a FIFO queue (since 7.0.1)
+- `Shoryuken::Errors::FifoDelayNotSupportedError` - Raised when a delay is used with a FIFO queue: by the ActiveJob adapter since 7.0.1, by `perform_in` and `perform_at` since [#1163](https://github.com/ruby-shoryuken/shoryuken/pull/1163) (see [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases))
 - `Shoryuken::Errors::InvalidArnError` - Raised for invalid ARN format
 
 #### Migration Guide
 
 **Before (Shoryuken 6.x):**
+
 ```ruby
 begin
   Shoryuken::Client.queues(queue_name)
@@ -77,6 +80,7 @@ end
 ```
 
 **After (Shoryuken 7.0):**
+
 ```ruby
 begin
   Shoryuken::Client.queues(queue_name)
@@ -105,31 +109,39 @@ This class was unused since the Celluloid removal in 2016. It was originally use
 
 ### FIFO Queue Delay Validation
 
-**Breaking:** Using `delay` with FIFO queues now raises an error. In 7.0.0 it is an `ArgumentError`. Since 7.0.1 it is `Shoryuken::Errors::FifoDelayNotSupportedError` ([#957](https://github.com/ruby-shoryuken/shoryuken/pull/957)).
+**Breaking:** Using `delay` with FIFO queues now raises an error. In 7.0.0 it is an `ArgumentError`. Since 7.0.1 it is `Shoryuken::Errors::FifoDelayNotSupportedError` ([#957](https://github.com/ruby-shoryuken/shoryuken/pull/957)). This check is in the ActiveJob adapter; `perform_in` and `perform_at` have it since [#1163](https://github.com/ruby-shoryuken/shoryuken/pull/1163).
 
 FIFO queues do not support per-message `DelaySeconds`. Previously, this would cause confusing AWS errors, especially with ActiveJob's `retry_on` (Rails 6.1+ defaults to `wait: 3.seconds`).
 
 **Before (Shoryuken 6.x):**
+
 ```ruby
 # Would silently fail or produce confusing AWS errors
 MyJob.set(wait: 3.seconds).perform_later
 ```
 
 **After (Shoryuken 7.0):**
+
 ```ruby
 # Raises a clear error with guidance
 MyJob.set(wait: 3.seconds).perform_later
+# 7.0.0:
+# => ArgumentError: FIFO queue 'my_queue.fifo' does not support
+#    per-message delays. When using ActiveJob retry_on with FIFO queues, set `wait: 0`.
+# Since 7.0.1:
 # => Shoryuken::Errors::FifoDelayNotSupportedError: FIFO queue 'my_queue.fifo' does not support
 #    per-message delays. When using ActiveJob retry_on with FIFO queues, set `wait: 0`.
 ```
 
 **Action Required:**
+
 1. If using FIFO queues with ActiveJob's `retry_on`, set `wait: 0`:
+
    ```ruby
    retry_on SomeException, wait: 0, attempts: 3
    ```
 
-2. If you need delayed retries with FIFO queues, implement a custom retry strategy using SQS dead-letter queues or application-level retry logic. A dead-letter queue breaks the order of a message group, see [FIFO Queues](https://github.com/ruby-shoryuken/shoryuken/wiki/FIFO-Queues#failures-and-dead-letter-queues).
+2. If you need delayed retries with FIFO queues, implement a custom retry strategy using SQS dead-letter queues or application-level retry logic. A dead-letter queue breaks the order of a message group, see [[FIFO Queues|FIFO Queues#failures-and-dead-letter-queues]].
 
 **Fixes:** [#924](https://github.com/ruby-shoryuken/shoryuken/issues/924)
 
@@ -138,6 +150,7 @@ MyJob.set(wait: 3.seconds).perform_later
 **Breaking:** All monkey-patching of core Ruby classes (`Hash` and `String`) has been removed.
 
 Shoryuken no longer extends core classes. Instead, it provides utility modules:
+
 - `Shoryuken::Helpers::HashUtils.deep_symbolize_keys` - Replaces `Hash#deep_symbolize_keys`
 - `Shoryuken::Helpers::StringUtils.constantize` - Replaces `String#constantize`
 
@@ -145,6 +158,7 @@ Shoryuken no longer extends core classes. Instead, it provides utility modules:
 
 1. Use ActiveSupport directly if you need these methods globally
 2. Use Shoryuken's utility methods directly:
+
    ```ruby
    Shoryuken::Helpers::HashUtils.deep_symbolize_keys(my_hash)
    Shoryuken::Helpers::StringUtils.constantize('MyClass')
@@ -155,6 +169,7 @@ Shoryuken no longer extends core classes. Instead, it provides utility modules:
 **Breaking:** Internal concurrent data structures from `concurrent-ruby` have been replaced with pure Ruby implementations.
 
 This is mostly an internal change, but if you were directly accessing these internal structures, they've been replaced:
+
 - `Concurrent::AtomicFixnum` → `Shoryuken::Helpers::AtomicCounter`
 - `Concurrent::AtomicBoolean` → `Shoryuken::Helpers::AtomicBoolean`
 - `Concurrent::Hash` → `Shoryuken::Helpers::AtomicHash`
@@ -170,10 +185,12 @@ This is mostly an internal change, but if you were directly accessing these inte
 **New in Rails 7.1+:** Shoryuken now supports efficient bulk job enqueuing through `ActiveJob.perform_all_later`.
 
 The `enqueue_all` method uses SQS's `send_message_batch` API to enqueue multiple jobs efficiently:
-- Automatically batches jobs in groups of 10 (SQS limit)
+
+- Automatically batches jobs in groups of 10 (SQS limit); since [#1164](https://github.com/ruby-shoryuken/shoryuken/pull/1164), a batch also holds up to 1 MiB in total
 - Groups jobs by queue name for efficient multi-queue handling
 
 **Usage:**
+
 ```ruby
 # Enqueue multiple jobs at once
 ActiveJob.perform_all_later(
@@ -194,6 +211,7 @@ See [[Bulk Enqueuing]] for details, including how it handles delayed jobs.
 When Shoryuken receives a shutdown signal, the `stopping?` method in the ActiveJob adapter signals to jobs that they should checkpoint and reschedule themselves.
 
 **How it works:**
+
 1. Shoryuken tracks shutdown state in the Launcher via the `stopping?` flag
 2. Jobs can check if a shutdown is in progress and checkpoint their work
 3. Jobs can reschedule themselves to resume after the interruption
@@ -212,6 +230,7 @@ See [[CurrentAttributes]] for details.
 This feature automatically serializes current attributes into the job payload when enqueuing and restores them before execution.
 
 **Setup:**
+
 ```ruby
 # In an initializer (e.g., config/initializers/shoryuken.rb)
 require 'shoryuken/active_job/current_attributes'
@@ -222,6 +241,7 @@ Shoryuken::ActiveJob::CurrentAttributes.persist('AnotherApp::Current')
 ```
 
 **Example:**
+
 ```ruby
 class Current < ActiveSupport::CurrentAttributes
   attribute :user_id, :request_id
@@ -239,13 +259,13 @@ MyJob.perform_later(args)
 
 **Note:** This feature is based on Sidekiq's approach and uses `ActiveJob::Arguments` for serialization.
 
-### Fiber-Local Storage for Logging
+### Logging Context in Fiber Storage
 
-**Enhancement:** Logging context now uses fiber-local storage instead of thread-local storage.
+**Enhancement:** Logging context now uses fiber storage (`Fiber[]`) instead of `Thread.current[]`.
 
-This ensures logging context doesn't leak between fibers in the same thread, which is important for async environments. Uses Ruby 3.2+ fiber-local storage API.
+`Thread.current[]` was already local to one fiber, so this does not change the isolation between fibers. The change: a fiber or thread that a worker creates while it processes a message now starts with a copy of that message's logging context, so its log lines carry that context. Before, it started with no context.
 
-**Action Required:** None. This is a transparent improvement that ensures better isolation in concurrent scenarios.
+**Action Required:** None.
 
 ### Other Enhancements
 
@@ -260,7 +280,7 @@ This ensures logging context doesn't leak between fibers in the same thread, whi
 
 ## Changes in 7.0.x Patch Releases
 
-The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings and options below, whose defaults keep the 7.0.0 behavior. One change is not opt-in: since 7.0.1 the FIFO delay error is `Shoryuken::Errors::FifoDelayNotSupportedError` instead of `ArgumentError`, so a `rescue ArgumentError` written for 7.0.0 no longer catches it. Rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead. The option validation, the ActiveJob delay error and the `body_parser` check below are not opt-in either.
+The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings and options below, whose defaults keep the 7.0.0 behavior. One change is not opt-in: since 7.0.1 the FIFO delay error is `Shoryuken::Errors::FifoDelayNotSupportedError` instead of `ArgumentError`, so a `rescue ArgumentError` written for 7.0.0 no longer catches it. Rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead. The option validation, the ActiveJob delay error and delay rounding, the `perform_in` and `perform_at` delay changes, the `body_parser` check and the exit status after a fatal dispatch error below are not opt-in either.
 
 - **7.0.1:** The `non_retryable_exceptions` worker option deletes a message at once when the worker raises one of the listed exceptions, instead of retrying it ([#958](https://github.com/ruby-shoryuken/shoryuken/pull/958)). See [[Worker options]].
 - **7.0.1:** The FIFO delay error is now `Shoryuken::Errors::FifoDelayNotSupportedError` (see [FIFO Queue Delay Validation](#fifo-queue-delay-validation)).
@@ -268,8 +288,12 @@ The 7.0.x patch releases are bug-fix releases. They also add the opt-in settings
 - **7.0.3:** `Shoryuken.active_job_fifo_message_deduplication = false` stops the ActiveJob adapter from generating a `message_deduplication_id` for FIFO queues. Default: `true`.
 - **7.0.4:** `Shoryuken.fifo_message_deduplication = false` stops `perform_async`, `Queue#send_message` and `Queue#send_messages` from generating a `message_deduplication_id` (a SHA-256 of the body) for FIFO queues. Default: `true`.
 - **[#1091](https://github.com/ruby-shoryuken/shoryuken/pull/1091):** ActiveJob `set(wait:)` or `set(wait_until:)` with a delay over 15 minutes raises `Shoryuken::Errors::InvalidDelayError`. 7.0.0 to 7.0.4 raise a `RuntimeError` with the same message; a `rescue RuntimeError` written for them no longer catches it. Rescue `Shoryuken::Errors::InvalidDelayError` (or `Shoryuken::Errors::BaseError`) instead. See [[Rails Integration Active Job]].
-- **[#1067](https://github.com/ruby-shoryuken/shoryuken/pull/1067), [#1071](https://github.com/ruby-shoryuken/shoryuken/pull/1071):** `shoryuken start` validates its options before it loads queues and workers. A configuration that started before can now fail to start with `Shoryuken::Errors::InvalidConfigurationError`, for example `concurrency: 0` or a malformed `queues` entry. Fix the option that the error names by its key path (`groups.<name>.<key>` inside a group). An unknown key only logs a warning: check it for a typo. See [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#option-validation). Worker options are stricter: a worker whose `shoryuken_options` has an unknown key, for example a mistyped `auto_delte` or the formerly documented `sqs` key, now raises `Shoryuken::Errors::InvalidConfigurationError` while its class loads, so the worker does not load. Remove or fix the key that the error names (`<WorkerClass>.<key>`). See [Option validation](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#option-validation) in [[Worker options]].
+- **[#1163](https://github.com/ruby-shoryuken/shoryuken/pull/1163):** `perform_in` and `perform_at` send the message at once (delay 0) for a time in the past or a negative interval, and a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError` before the send. 7.0.0 to 7.0.4 raise `Aws::SQS::Errors::InvalidParameterValue` from SQS in both cases. A `rescue Aws::SQS::Errors::InvalidParameterValue` written for the FIFO case no longer catches it: rescue `Shoryuken::Errors::FifoDelayNotSupportedError` (or `Shoryuken::Errors::BaseError`) instead. See [[Sending a message]].
+- **[#1210](https://github.com/ruby-shoryuken/shoryuken/pull/1210):** ActiveJob `set(wait:)` and `set(wait_until:)` round a delay up to whole seconds, as `perform_in` and `perform_at` do, so a job never runs earlier than asked. A delay of a fraction of a second on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`, and a delay over 900 and up to 901 seconds raises `Shoryuken::Errors::InvalidDelayError`. 7.0.0 to 7.0.4 round these delays to the nearest second: a FIFO delay under 0.5 seconds is sent with no delay, and a delay over 900 and under 900.5 seconds is sent with 900 seconds. From 0.5 and from 900.5 seconds they already raise an error. See [[Rails Integration Active Job]].
+- **[#1067](https://github.com/ruby-shoryuken/shoryuken/pull/1067), [#1071](https://github.com/ruby-shoryuken/shoryuken/pull/1071):** `shoryuken start` validates its options before it loads queues and workers. A configuration that started before can now fail to start with `Shoryuken::Errors::InvalidConfigurationError`, for example `concurrency: 0` or a malformed `queues` entry. Fix the option that the error names by its key path (`groups.<name>.<key>` inside a group). An unknown key only logs a warning: check it for a typo. See [[Option validation|Shoryuken options#option-validation]]. Worker options are stricter: a worker whose `shoryuken_options` has an unknown key, for example a mistyped `auto_delte` or the formerly documented `sqs` key, now raises `Shoryuken::Errors::InvalidConfigurationError` while its class loads, so the worker does not load. Remove or fix the key that the error names (`<WorkerClass>.<key>`). See [[Option validation|Worker options#option-validation]] in [[Worker options]].
 - **[#1120](https://github.com/ruby-shoryuken/shoryuken/pull/1120):** A worker `body_parser` value other than `:json`, `:text`, `nil`, a Proc or an object that responds to `parse` or `load` (for example `:JSON`, `'json'` or `JSON.method(:parse)`) raises `Shoryuken::Errors::InvalidConfigurationError` while the worker class loads, so the worker does not load. A value from `default_worker_options` is checked too. 7.0.0 to 7.0.4 accept such a value and give every message a `nil` body; with `auto_delete` the message is then deleted. See [[Worker options]].
+- **[#1122](https://github.com/ruby-shoryuken/shoryuken/pull/1122):** `shoryuken start` exits with status 1 when a fatal dispatch error stops it (SQS still fails after the fetch retries). 7.0.0 to 7.0.4 exit with status 0, so a process supervisor (for example systemd with `Restart=on-failure`) takes the crash for a clean stop and does not restart the process. A USR1 sent by an operator and a TERM or INT shutdown still exit with status 0. See [[Signals]].
+- **[#1123](https://github.com/ruby-shoryuken/shoryuken/pull/1123):** `Shoryuken.launcher_executor` accepts any object that responds to `post`, `running?`, `shutdown`, `wait_for_termination` and `kill`. In 7.0.0 to 7.0.4 it must be a concurrent-ruby executor: with any other executor, no message is processed, and each one fails with `executor not recognized`. See [[launcher_executor|Shoryuken options#launcher_executor]].
 
 With these settings at `true`, two sends of an identical body to a FIFO queue within the SQS 5-minute deduplication window are deduplicated, and SQS drops the second one. If you set them to `false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue. See [[FIFO Queues]].
 
@@ -280,10 +304,11 @@ For the full list of fixes, see the [CHANGELOG](https://github.com/ruby-shoryuke
 ### 1. Check Ruby and Rails Versions
 
 Ensure you're running:
+
 - Ruby 3.2.0 or higher
 - Rails 7.2 or higher (if using Rails)
 
-```bash
+```shell
 ruby -v
 # Should show 3.2.0 or higher
 
@@ -301,7 +326,7 @@ Shoryuken 7.0 requires `aws-sdk-sqs` 1.66.0 or later.
 
 ### 3. Update Dependencies
 
-```bash
+```shell
 bundle update shoryuken aws-sdk-sqs
 ```
 
@@ -309,7 +334,7 @@ bundle update shoryuken aws-sdk-sqs
 
 Search your codebase for error handling around Shoryuken operations:
 
-```bash
+```shell
 # Find potential error handling that needs updating
 grep -r "rescue ArgumentError" app/
 grep -r "rescue RuntimeError" app/
@@ -333,7 +358,7 @@ retry_on SomeException, wait: 0
 
 Search for and remove any references:
 
-```bash
+```shell
 grep -r "Shoryuken::Shutdown" app/
 ```
 
@@ -341,7 +366,7 @@ grep -r "Shoryuken::Shutdown" app/
 
 Run your test suite to identify any issues:
 
-```bash
+```shell
 bundle exec rspec
 # or
 bundle exec rake test

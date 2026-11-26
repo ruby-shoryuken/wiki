@@ -21,7 +21,7 @@ Some options available in the configuration file are not available in the CLI (f
 ## CLI options
 
 | Option | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `-C, --config FILE` | Path to the YAML configuration file |
 | `-R, --rails` | Load the Rails application |
 | `-r, --require PATH` | Dir or path of the workers |
@@ -52,7 +52,7 @@ To list all CLI options: `shoryuken help start`.
 An unknown command, an unknown option or an extra argument prints an error, and `shoryuken` exits with status 1. This applies to `start`, `check`, `version` and the [[Shoryuken SQS CLI]] commands:
 
 | Input | Error |
-|-------|-------|
+| ------- | ------- |
 | `shoryuken bogus` | `Could not find command "bogus"` |
 | `shoryuken start --bogus` | `Unknown switches "--bogus"` |
 | `shoryuken start extra` | `ERROR: "shoryuken start" was called with arguments ["extra"]` |
@@ -69,7 +69,7 @@ It loads the Rails application (with `-R`), the configuration file and the CLI o
 
 - When the setup is valid, it prints `Configuration OK` and exits with status 0.
 - On a failure below, it prints `[FAIL]` followed by the problem, without a backtrace, and exits with status 1.
-- On any other error, for example one raised while a worker file loads, it prints the Ruby error with its backtrace and exits with status 1.
+- On any other error, for example a `NameError` in a worker file, it prints the Ruby error with its backtrace and exits with status 1.
 
 It fails with `[FAIL]` on:
 
@@ -77,6 +77,8 @@ It fails with `[FAIL]` on:
 - An invalid option value (see [Option validation](#option-validation))
 - `-d` without `-L`
 - A `-r` path that does not exist
+- A `polling_strategy` name that resolves to no class: in a group, or the global `polling_strategy` when `queues` is set (see [[Polling strategies]])
+- An unknown worker option key, or an unsupported `body_parser` value even when it comes from `Shoryuken.default_worker_options` (see [[Worker options]])
 - A queue that does not exist
 - Missing AWS credentials or region
 - No queues: `No queues supplied`
@@ -90,10 +92,10 @@ To list its options: `shoryuken help check`.
 
 When `shoryuken start` or `shoryuken check` loads its options, it checks the merged result of the configuration file and the CLI options, before it loads queues and workers. With `-R`, it also checks the options that Rails initializers set. It does not check options set in a `-r` file, which loads after the check, or groups and queues added with `Shoryuken.add_group` and `Shoryuken.add_queue`.
 
-An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
+An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. `shoryuken start` prints it to stderr as `[FAIL] <message> (<error class>)`, without a backtrace, and exits with status 1. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
 
 | Option | Valid values |
-|--------|--------------|
+| -------- | -------------- |
 | `concurrency` | An Integer greater than 0. In a group, also `nil`, which uses the global value |
 | `delay` | `nil` or a number greater than or equal to 0. A numeric String such as `"2.5"` also works |
 | `timeout` | `nil` or a number greater than or equal to 0 |
@@ -268,7 +270,7 @@ With `cache_visibility_timeout` enabled, every time you change the visibility ti
 
 Default: `false`
 
-Set it to `true` to apply the ActiveJob `queue_name_prefix` to the queue names Shoryuken reads from. See [[Rails Integration Active Job]].
+Set it to `true` to apply the ActiveJob `queue_name_prefix` to the queue names Shoryuken reads from. A queue given as a URL (with any scheme, such as the `http://` URLs of ElasticMQ and LocalStack) or an ARN is used as given, without the prefix. See [[Rails Integration Active Job]].
 
 ```ruby
 Shoryuken.active_job_queue_name_prefixing = true
@@ -283,6 +285,29 @@ Control whether Shoryuken generates a Message Deduplication ID for messages sent
 ```ruby
 Shoryuken.fifo_message_deduplication = false
 Shoryuken.active_job_fifo_message_deduplication = false
+```
+
+### launcher_executor
+
+Default: `nil`
+
+The executor that runs the workers and, for each processing group, the loop that fetches messages and hands them to the workers. With `nil`, Shoryuken uses its own `Concurrent::CachedThreadPool`. It does not have to be a concurrent-ruby executor (see [[Changes in 7.0.x Patch Releases|Upgrading to 7.0#changes-in-70x-patch-releases]]). Any object with these methods works:
+
+- `post { ... }` runs the block on another thread and returns without waiting for it. To reject the block, it raises `Concurrent::RejectedExecutionError`. When it rejects a worker's block, Shoryuken makes the message visible again. When it rejects a fetch loop's block, the processing group stops fetching messages. An executor that runs the block in the calling thread overflows the stack, because each fetch posts the next fetch from inside its block.
+- `running?` returns `false` once the executor is shut down.
+- `shutdown` stops accepting new blocks and lets the posted ones finish.
+- `wait_for_termination(timeout)` waits up to `timeout` seconds (`nil`: no limit) for the posted blocks to finish and returns `true` when they did.
+- `kill` stops the posted blocks that did not finish in time.
+
+When Shoryuken stops, it calls `shutdown`, then `kill` if `wait_for_termination` with the [`timeout`](#timeout) value returns `false`.
+
+These parts of Shoryuken do not run on this executor:
+
+- The start of each processing group's fetch loop. A `Concurrent::Future` on concurrent-ruby's global I/O executor posts the first fetch to this executor. The fetch loop then runs on this executor.
+- With [[auto_visibility_timeout|Worker options#auto_visibility_timeout]], the timer that extends a message's visibility timeout. Shoryuken creates a thread for it, one for each message.
+
+```ruby
+Shoryuken.launcher_executor = MyExecutor.new
 ```
 
 ### Server and client configuration
@@ -308,16 +333,16 @@ See [[Middleware]] and [[Lifecycle Events]].
 
 ### exception_handlers
 
-Each handler is called with the exception, the queue name and the SQS message when an error is raised while Shoryuken processes a message: always for an error of the body parser, and for an error of the server middleware or `perform` when no server middleware handles it (see [[Middleware]]). For a [`batch`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#batch) worker, the SQS message is an Array of the messages of the batch. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
+Each handler is called with the exception, the queue name and the SQS message when an error is raised while Shoryuken processes a message: always for an error of the body parser, and for an error of the server middleware or `perform` when no server middleware handles it (see [[Middleware]]). For a [[batch|Worker options#batch]] worker, the SQS message is an Array of the messages of the batch. The default list holds `Shoryuken::DefaultExceptionHandler`, which logs the error.
 
 Some errors that a worker raises are handled by a server middleware, so the handlers are not called for them:
 
-- A failure that [`retry_intervals`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#retry_intervals) retries with backoff. Shoryuken logs `Message <id> will attempt retry due to error: <message>` at WARN level and the backtrace at DEBUG level.
-- An error that [`non_retryable_exceptions`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions) matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
+- A failure that [[retry_intervals|Worker options#retry_intervals]] retries with backoff. Shoryuken logs `Message <id> will attempt retry due to error: <message>` at WARN level and the backtrace at DEBUG level.
+- An error that [[non_retryable_exceptions|Worker options#non_retryable_exceptions]] matches: a listed exception class, or a lambda that returns `true` for it. Shoryuken logs a warning and deletes the message.
 
 With `retry_intervals` set, the handlers are still called when the message is not retried with backoff: the interval for the attempt is `nil` or `false` (for example, a lambda that returns `nil`), Shoryuken cannot change the message's visibility timeout, or the worker is a batch worker (backoff does not apply to batches).
 
-Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [`body_parser`](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#body_parser).
+Shoryuken parses the message body before the server middleware chain runs, so no server middleware handles an error of the body parser (`non_retryable_exceptions` and `retry_intervals` included). In a batch worker, one body that fails to parse fails every message of the batch. See [[body_parser|Worker options#body_parser]].
 
 ```ruby
 Shoryuken.configure_server do |config|
@@ -335,4 +360,3 @@ Shoryuken.add_queue('payments', 1, 'critical')
 ```
 
 `add_group` also takes `delay:` and `polling_strategy:` keyword arguments.
-

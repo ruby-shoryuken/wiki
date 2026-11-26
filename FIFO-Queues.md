@@ -1,10 +1,10 @@
-If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html), Shoryuken will auto detect it, and just work ✨ 
+If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html), Shoryuken will auto detect it, and just work ✨
 
 ## How does that work?
 
-If you send a message using [`perform_async`](https://github.com/ruby-shoryuken/shoryuken/wiki/Sending-a-message) or [ActiveJob](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job), Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash based on the message body.
+If you send a message using [[perform_async|Sending a message]] or [[ActiveJob|Rails Integration Active Job]], Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the message body (for ActiveJob, without `job_id` and `enqueued_at`).
 
-If you want to set specific values to Message Group ID and Message Deduplication ID, 
+If you want to set specific values to Message Group ID and Message Deduplication ID,
 you should use `send_message` instead:
 
 ```ruby
@@ -23,17 +23,18 @@ Shoryuken::Client.queues('queue.fifo').send_message(
 
 ### Turning off automatic deduplication IDs
 
-Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. To stop Shoryuken from generating the ID:
+Two sends of an identical body within the SQS 5-minute deduplication window get the same Message Deduplication ID, so SQS drops the second one. Each setting turns off one generated ID:
 
 ```ruby
-# perform_async, Queue#send_message and Queue#send_messages
+# Full-body hash: perform_async, Queue#send_message, Queue#send_messages,
+# and ActiveJob when the adapter's ID is off
 Shoryuken.fifo_message_deduplication = false
 
-# ActiveJob adapter
+# ActiveJob adapter's ID (body without job_id and enqueued_at)
 Shoryuken.active_job_fifo_message_deduplication = false
 ```
 
-Both default to `true`. An explicit `message_deduplication_id` is always used. With the setting at `false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue.
+Both default to `true`. An explicit `message_deduplication_id` is always used. With `fifo_message_deduplication = false`, give a `message_deduplication_id` yourself or enable `ContentBasedDeduplication` on the queue; for ActiveJob, this is needed only when both settings are `false`. With only `active_job_fifo_message_deduplication = false`, each ActiveJob enqueue still gets a SHA-256 hash of the full message body. The body includes the `job_id`, so distinct enqueues are not deduplicated.
 
 *Note:* If you are fetching from a FIFO queue and not using the batch option for workers, the fetcher will fetch a maximum of one message at a time, in order to ensure that the messages for a particular Message Group ID are executed in FIFO order ([see here](https://github.com/ruby-shoryuken/shoryuken/blob/17e9df8d80d86485c1b80ef4465350a8c40fa90d/lib/shoryuken/fetcher.rb#L62-L71)). It is better to keep `concurrency > 1` in this case, so that your worker can service jobs from other Message Group IDs at the same time.
 
@@ -41,11 +42,11 @@ You might also consider using the `batch` option to fetch more messages at once,
 
 ## Receiving messages
 
-There's no special configuration needed to receive FIFO messages, you only need to configure the queue in the [same way you would if it was a standard queue](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#queues).
+There's no special configuration needed to receive FIFO messages, you only need to configure the queue in the [[same way you would if it was a standard queue|Shoryuken options#queues]].
 
 ### Process one by one
 
-If you want to receive and process messages one by one for a Message Group, configure `max_number_of_messages: 1 
+If you want to receive and process messages one by one for a Message Group, configure `max_number_of_messages: 1
 ` as follows:
 
 ```ruby
@@ -58,7 +59,7 @@ See [[Receive Message options]].
 
 ## Failures and dead-letter queues
 
-When a worker raises an error, Shoryuken does not delete the message (see [[Retrying a message]]), unless the error matches the worker's [non_retryable_exceptions](https://github.com/ruby-shoryuken/shoryuken/wiki/Worker-options#non_retryable_exceptions). SQS returns no other message of the same Message Group ID until that message is deleted or becomes visible again ([see the AWS docs](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-understanding-logic.html)). What happens next depends on the [redrive policy](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) of the queue:
+When a worker raises an error, Shoryuken does not delete the message (see [[Retrying a message]]), unless the error matches the worker's [[non_retryable_exceptions|Worker options#non_retryable_exceptions]]. SQS returns no other message of the same Message Group ID until that message is deleted or becomes visible again ([see the AWS docs](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-understanding-logic.html)). What happens next depends on the [redrive policy](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) of the queue:
 
 - **Without a redrive policy**, SQS delivers the failed message again after each visibility timeout. The message group stays blocked until the message succeeds, or until it is older than the [`MessageRetentionPeriod`](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html) of the queue. Then SQS deletes the message, and the next message of the group runs.
 - **With a redrive policy**, SQS moves the message to the dead-letter queue (DLQ) after `maxReceiveCount` receives. Then the next message of the same group runs, so the group is no longer processed in order. AWS advises not to use a DLQ with a FIFO queue if you need the exact order of messages.

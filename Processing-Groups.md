@@ -46,7 +46,6 @@ groups:
 
 ### Polling strategy per group
 
-
 ```yaml
 groups:
   group1:

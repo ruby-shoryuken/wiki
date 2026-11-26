@@ -50,6 +50,6 @@ If a job sets a scheduler itself with `Fiber.set_scheduler`, it must remove it (
 
 After each job, including one that raises, the Shoryuken process checks the Fiber scheduler of the job's thread. If it is not the one set before the job, Shoryuken sets back the previous one and logs a warning:
 
-```
+```text
 A job on <queue> left a Fiber scheduler set; Shoryuken set back the previous one after the job
 ```

@@ -35,13 +35,13 @@ Shoryuken.configure_client { |config| config.sqs_client = sqs_client }
 
 [Install moto](https://github.com/spulec/moto#stand-alone-server-mode) with:
 
-```
+```shell
 pip install moto[server]
 ```
 
 To run it:
 
-```
+```shell
 moto_server sqs -p 4576 -H localhost
 ```
 
@@ -81,7 +81,7 @@ end
 
 If you want to use `shoryuken sqs` command with a different endpoint you can pass an `--endpoint` option to the command, example:
 
-```bash
+```shell
 shoryuken sqs ls --endpoint=http://localhost:4576
 ```
 

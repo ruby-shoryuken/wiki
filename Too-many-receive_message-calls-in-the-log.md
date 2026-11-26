@@ -1,6 +1,6 @@
 Lines like this one come from the AWS SDK, not from Shoryuken:
 
-```
+```text
 [Aws::SQS::Client 200 0.452184 0 retries] receive_message(max_number_of_messages:1,message_attribute_names:["All"],attribute_names:["All"],queue_url:"https://sqs.us-east-1.amazonaws.com/000011112222/my-queue")
 ```
 

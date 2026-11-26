@@ -1,0 +1,24 @@
+# External link check for the wiki pages (lychee).
+# Run: lychee --config .lychee.toml './*.md'
+
+scheme = ["https", "http"]
+include_wikilinks = false
+# URLs in code blocks and inline code are checked too, so placeholders must be excluded.
+include_verbatim = true
+
+# A rate limit (429) counts as success. Retries cover only timeouts and dropped connections, not 5xx.
+accept = ["200..=299", "429"]
+max_retries = 3
+retry_wait_time = 2
+timeout = 20
+max_concurrency = 16
+
+exclude_loopback = true
+exclude_private = true
+exclude_link_local = true
+
+exclude = [
+  '^https?://([a-z0-9-]+\.)*example\.(com|org|net)',
+  # Placeholder SQS queue URLs (fake account IDs such as 123456789012)
+  '^https?://sqs\.[a-z0-9-]+\.amazonaws\.com/',
+]

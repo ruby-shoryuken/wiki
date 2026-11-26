@@ -28,7 +28,7 @@ See [OpsWorks Recipe](https://github.com/carpet/opsworks-shoryuken).
 
 ## AWS Elastic Beanstalk
 
-See [.ebextension file here](https://github.com/ruby-shoryuken/shoryuken/wiki/AWS-Beanstalk-Config).
+See [[.ebextension file here|AWS Beanstalk Config]].
 
 ## systemd integration
 
@@ -55,8 +55,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to USR1: USR1 makes Shoryuken exit (see [[Signals]]).
+Keep `TimeoutStopSec` above Shoryuken's `timeout`. Do not map `ExecReload` to USR1: USR1 makes Shoryuken exit (see [[Signals]]). When SQS still fails after the fetch retries (a fatal dispatch error, see [[Health Checks]]), Shoryuken exits with status 1, so `Restart=on-failure` restarts it. After a USR1, TERM or INT that you send, Shoryuken exits with status 0.
 
 ## Shutdown
 
-Set `timeout` below the time your platform waits before it kills the process. See [[Signals]].
+Set `timeout` below the time your platform waits before it kills the process. If you send `USR1` or `TSTP` before the platform kills the process, with [[Long Polling]] that graceful stop can also take up to the long poll wait (`wait_time_seconds`, or the queue's `ReceiveMessageWaitTimeSeconds` when Shoryuken sends none) before the `timeout` window starts. A `TERM` or `INT` sent during that graceful stop still stops the process within `timeout`. See [[Signals]].

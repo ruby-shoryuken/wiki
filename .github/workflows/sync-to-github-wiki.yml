@@ -13,12 +13,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout wiki repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           path: wiki-repo
 
       - name: Checkout GitHub wiki
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           repository: ruby-shoryuken/shoryuken.wiki
           path: github-wiki

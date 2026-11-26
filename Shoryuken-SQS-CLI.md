@@ -1,7 +1,7 @@
 The `shoryuken sqs` commands manage SQS queues from the command line. To list them, run `shoryuken help sqs`.
 
 | Command | Effect |
-|---------|--------|
+| --------- | -------- |
 | `ls [QUEUE-NAME-PREFIX]` | Lists queues |
 | `dump QUEUE-NAME` | Writes the messages of a queue to a JSON lines file |
 | `requeue QUEUE-NAME PATH` | Sends the messages of a dump file to a queue |
@@ -10,11 +10,11 @@ The `shoryuken sqs` commands manage SQS queues from the command line. To list th
 | `create QUEUE-NAME` | Creates a queue |
 | `delete QUEUE-NAME` | Deletes a queue |
 
-An unknown command, an unknown option or an extra argument prints an error, for example `Could not find command "bogus"`, `Unknown switches "--bogus"` or `ERROR: "shoryuken sqs ls" was called with arguments ["a", "b"]`, and exits with status 1. See [CLI options](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#cli-options) in [[Shoryuken options]].
+An unknown command, an unknown option or an extra argument prints an error, for example `Could not find command "bogus"`, `Unknown switches "--bogus"` or `ERROR: "shoryuken sqs ls" was called with arguments ["a", "b"]`, and exits with status 1. See [[CLI options|Shoryuken options#cli-options]] in [[Shoryuken options]].
 
 ## Queue names and the endpoint
 
-The commands take a queue name, not a queue URL. Shoryuken looks up the URL of the name. On SQS, an unknown name fails with `The specified queue <name> does not exist`.
+The commands take a queue name, not a queue URL. Shoryuken looks up the URL of the name. In `dump`, `requeue`, `mv`, `purge` and `delete`, an unknown name fails with `[FAIL] The specified queue <name> does not exist` and exit status 1, on SQS and on ElasticMQ.
 
 An argument after `--` that starts with `-` fails with `Unknown switches`. So `shoryuken sqs purge -- -queue` does not reach a queue named `-queue`.
 
@@ -26,14 +26,14 @@ For the IAM actions that the commands need, see [[Amazon SQS IAM Policy for Shor
 
 ## ls
 
-```bash
+```shell
 shoryuken sqs ls [QUEUE-NAME-PREFIX]
 ```
 
 Prints a table of the queues whose names start with the prefix, or of all queues without a prefix. It shows at most 1,000 queues, the SQS limit for one `ListQueues` call. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-w`, `--watch` | | Prints the table again until you press Ctrl-C |
 | `-n`, `--interval` | `2` | Seconds between two tables with `--watch` |
 
@@ -41,14 +41,14 @@ An unknown option is not taken as the prefix: `shoryuken sqs ls --bogus` fails w
 
 ## dump
 
-```bash
+```shell
 shoryuken sqs dump QUEUE-NAME
 ```
 
 Receives the messages of the queue and writes them to `<queue-name>-<date>.jsonl`, one message per line. The date is today's date, for example `my-queue-2026-10-19.jsonl`.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--number` | all | The number of messages to dump |
 | `-p`, `--path` | `./` | The directory for the dump file |
 | `-d`, `--delete` | `true` | Deletes the dumped messages from the queue. Use `--no-delete` to keep them |
@@ -65,14 +65,14 @@ An empty queue gives `Queue <name> is empty`, and no file is written.
 
 ## requeue
 
-```bash
+```shell
 shoryuken sqs requeue QUEUE-NAME PATH
 ```
 
 Sends the messages of a dump file to the queue. It does not change the file.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--batch_size` | `10` | The maximum number of messages in one send batch |
 
 Shoryuken also keeps each batch within the SQS batch payload limit (1 MiB).
@@ -85,18 +85,18 @@ For a message from a FIFO queue, `requeue` sends a new `MessageDeduplicationId` 
 
 ## mv
 
-```bash
+```shell
 shoryuken sqs mv QUEUE-NAME-SOURCE QUEUE-NAME-TARGET
 ```
 
 Receives the messages of the source queue and sends them to the target queue.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--number` | all | The number of messages to move |
 | `-d`, `--delete` | `true` | Deletes the moved messages from the source queue. Use `--no-delete` to keep them |
 
-`--number` must be at least 1, else `mv` fails with `Number of messages must be at least 1, got <n>` before it receives any message.
+`--number` must be at least 1, else `mv` fails with `Number of messages must be at least 1, got <n>` before it receives any message. `mv` also looks up both queues before it receives any message, so a missing target queue fails without putting the source messages in flight.
 
 When the target queue rejects a message, `mv` prints `Could not requeue <id>, code: <code>` for it and does not delete it from the source queue. The `Moved <n> messages` line counts only the accepted messages. `mv` then prints `Could not move <n> messages, they stay in <source>` and exits with status 1.
 
@@ -115,7 +115,7 @@ A second `dump` of the same queue on the same day needs another `--path` (see [d
 
 ## purge
 
-```bash
+```shell
 shoryuken sqs purge QUEUE-NAME
 ```
 
@@ -123,20 +123,20 @@ Sends a purge request for the queue. SQS takes up to 60 seconds to delete the me
 
 ## create
 
-```bash
+```shell
 shoryuken sqs create QUEUE-NAME
 shoryuken sqs create my-queue.fifo -a ContentBasedDeduplication:true
 ```
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-a`, `--attributes` | `{}` | Queue attributes as `Name:value` pairs |
 
 A name that ends with `.fifo` sets `FifoQueue` to `true`. See [[FIFO Queues]].
 
 ## delete
 
-```bash
+```shell
 shoryuken sqs delete QUEUE-NAME
 ```
 

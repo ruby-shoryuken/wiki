@@ -1,10 +1,10 @@
 There are a couple ways to send a message using Shoryuken.
 
-### Using `perform_async`: 
+### Using `perform_async`
 
 ```ruby
 MyWorker.perform_async('Pablo')
-``` 
+```
 
 it also accepts a Hash as a parameter, which is automatically converted into JSON:
 
@@ -15,11 +15,13 @@ MyWorker.perform_async(field: 'test', other_field: 'other')
 it's also possible to override where the job is queued to with an options hash:
 
 ```ruby
-MyWorker.perform_async('Pablo')                     # will queue to the default queue
+MyWorker.perform_async('Pablo')                     # will queue to the worker's queue
 MyWorker.perform_async('Pablo', queue: 'important') # will queue to the 'important' queue
 ```
 
-### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html):
+A worker with several queues needs `queue:` (see [[queue|Worker options#queue]] in [[Worker options]]).
+
+### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html)
 
 ```ruby
 # To send a single message
@@ -31,8 +33,11 @@ Shoryuken::Client.queues('default').send_message(message_body: { example: "data"
 # To send multiple messages
 Shoryuken::Client.queues('default').send_messages(['msg 1', 'msg 2'])
 ```
+
 #### Sending a message directly for ActiveJob workers
+
 In the case that the job message is generated outside of your Rails Shoryuken via ActiveJob environment (like from a serverless function), you can still send a message to be processed by your workers.
+
 ```ruby
 queue_name = 'my-queue'
 
@@ -73,12 +78,16 @@ Shoryuken::Client.queues(queue_name).send_message(message)
 
 ## Delaying a message
 
-You can delay a message up to 15 minutes. A longer delay raises `Shoryuken::Errors::InvalidDelayError`.
+You can delay a message up to 15 minutes. Shoryuken rounds the delay up to whole seconds, and a delay over 900 seconds raises `Shoryuken::Errors::InvalidDelayError`. A time in the past or a negative interval sends the message at once (delay 0).
 
 ```ruby
 MyWorker.perform_in(60, 'Pablo') # 60 seconds
 MyWorker.perform_at(Time.now + 300, 'Pablo')
 ```
+
+FIFO queues do not support per-message delays: a delay on a FIFO queue raises `Shoryuken::Errors::FifoDelayNotSupportedError`, and the message is not sent. A time in the past, a negative interval or an interval of 0 still sends the message.
+
+The inline executor ignores the delay, see [[Shoryuken Inline adapter]].
 
 ## FIFO queues
 

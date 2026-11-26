@@ -1,4 +1,4 @@
-This guide sets up Shoryuken 7.0 with ActiveJob in a Rails 7.2+ application.
+This guide sets up Shoryuken with ActiveJob in a Rails 8.0 or 8.1 application.
 
 ## Create SQS queue
 
@@ -49,7 +49,6 @@ Trigger your job where required:
 YourJob.perform_later(resource.id)
 ```
 
-
 ## Configure shoryuken.yml
 
 Make sure it's located in `config/shoryuken.yml`. This will be used by the worker to consume and process the messages sent to the queue in SQS.
@@ -63,8 +62,7 @@ queues:
 
 You can use [dotenv](https://github.com/bkeepers/dotenv) to setup your environment variables.
 
-The number `1` above after the queue name is the queue weight, please refer to [Polling strategies
-](https://github.com/ruby-shoryuken/shoryuken/wiki/Polling-strategies) for more information.
+The number `1` above after the queue name is the queue weight, please refer to [[Polling strategies]] for more information.
 
 ## Configure AWS credentials
 

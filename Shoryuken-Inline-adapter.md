@@ -1,6 +1,6 @@
 Shoryuken also supports inline jobs, which can be useful for testing and development environments. When using the inline adapter `perform_async` and `perform_in` execute the workers right away without going to SQS.
 
-*Note:* Shoryuken Inline Adapter is only available in Shoryuken workers. It is not supported in [Active Job jobs](https://github.com/ruby-shoryuken/shoryuken/wiki/Rails-Integration-Active-Job). For Active Job, refer to the [Active Job Inline adapter](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html).
+*Note:* Shoryuken Inline Adapter is only available in Shoryuken workers. It is not supported in [[Active Job jobs|Rails Integration Active Job]]. For Active Job, refer to the [Active Job Inline adapter](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html).
 
 The inline executor calls `perform` directly: server middleware does not run, and `perform_in` ignores the delay.
 
