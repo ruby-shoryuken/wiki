@@ -1,4 +1,4 @@
-Shoryuken 7.0 can carry Rails `ActiveSupport::CurrentAttributes` from the code that enqueues an ActiveJob job to the job when it runs. It works only with the Shoryuken ActiveJob adapter, not with `Shoryuken::Worker` workers.
+Shoryuken can carry Rails `ActiveSupport::CurrentAttributes` from the code that enqueues an ActiveJob job to the job when it runs. It works only with the Shoryuken ActiveJob adapter, not with `Shoryuken::Worker` workers.
 
 ## Setup
 
