@@ -2,7 +2,7 @@ Shoryuken has built in two polling strategies `WeightedRoundRobin` and `StrictPr
 
 ## WeightedRoundRobin
 
-`WeightedRoundRobin` is the default polling strategy for all groups, it works as follows: 
+`WeightedRoundRobin` is the default polling strategy for all groups, it works as follows:
 
 Given the configuration below:
 

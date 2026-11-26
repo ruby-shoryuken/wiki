@@ -2,7 +2,7 @@ If you use standard Shoryuken workers by `include Shoryuken::Worker`, and do not
 
 Example:
 
-```sh
+```shell
 bundle exec shoryuken \
         -R \
         -P /var/app/containerfiles/pids/shoryuken.pid \

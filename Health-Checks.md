@@ -6,8 +6,8 @@ Shoryuken.healthy? # => true or false
 
 It returns `false`:
 
-* before the launcher has started,
-* when a processing group's manager stopped after a fatal dispatch error (the error is logged as `Manager failed: ...`).
+- before the launcher has started,
+- when a processing group's manager stopped after a fatal dispatch error (the error is logged as `Manager failed: ...`).
 
 In the `shoryuken` CLI process, a fatal dispatch error also sends USR1 to the process, so it shuts down gracefully and exits with status 1, and your process supervisor can restart it (see [[Signals]]).
 

@@ -8,6 +8,7 @@ delay: 10
 queues:
   - ['https://sqs.us-east-1.amazonaws.com/account-id/queue-name', 1]
 ```
+
 ### Via CLI
 
 ```shell

@@ -2,23 +2,23 @@ Below is a minimum IAM Policy required for Shoryuken to function.
 
 ```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Sid": "ShoryukenAccess",
-			"Effect": "Allow",
-			"Action": [
-				"sqs:ChangeMessageVisibility",
-				"sqs:DeleteMessage",
-				"sqs:GetQueueAttributes",
-				"sqs:GetQueueUrl",
-				"sqs:ReceiveMessage",
-				"sqs:SendMessage",
- 				"sqs:ListQueues"
-			],
-			"Resource": "arn:aws:sqs:REGION:ACCOUNT:*"
-		}
-	]
+ "Version": "2012-10-17",
+ "Statement": [
+  {
+   "Sid": "ShoryukenAccess",
+   "Effect": "Allow",
+   "Action": [
+    "sqs:ChangeMessageVisibility",
+    "sqs:DeleteMessage",
+    "sqs:GetQueueAttributes",
+    "sqs:GetQueueUrl",
+    "sqs:ReceiveMessage",
+    "sqs:SendMessage",
+     "sqs:ListQueues"
+   ],
+   "Resource": "arn:aws:sqs:REGION:ACCOUNT:*"
+  }
+ ]
 }
 ```
 

@@ -8,8 +8,8 @@ When the job is enqueued again to resume, the adapter sends it like any other jo
 
 ## Things to keep in mind
 
-* A step must finish within the shutdown time. With `TERM`, `INT`, `USR1` and `TSTP`, busy workers are killed after `timeout` seconds (see [[Shoryuken options]]). Keep each step shorter than that.
-* On a FIFO queue, a resume with a delay raises `Shoryuken::Errors::FifoDelayNotSupportedError`, because FIFO queues do not support per-message delays (see [[Rails Integration Active Job]]). By default, Rails resumes a job with `wait: 5.seconds`, so on a FIFO queue every resume raises. SQS then delivers the message again after the visibility timeout, and the job starts again from its first step: the steps that finished run again. For jobs on FIFO queues, resume without a delay:
+- A step must finish within the shutdown time. With `TERM`, `INT`, `USR1` and `TSTP`, busy workers are killed after `timeout` seconds (see [[Shoryuken options]]). Keep each step shorter than that.
+- On a FIFO queue, a resume with a delay raises `Shoryuken::Errors::FifoDelayNotSupportedError`, because FIFO queues do not support per-message delays (see [[Rails Integration Active Job]]). By default, Rails resumes a job with `wait: 5.seconds`, so on a FIFO queue every resume raises. SQS then delivers the message again after the visibility timeout, and the job starts again from its first step: the steps that finished run again. For jobs on FIFO queues, resume without a delay:
 
   ```ruby
   class ImportJob < ApplicationJob

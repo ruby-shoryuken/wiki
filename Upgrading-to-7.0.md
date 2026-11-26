@@ -6,16 +6,16 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 
 - [Ruby and Rails Version Requirements](#ruby-and-rails-version-requirements)
 - [Breaking Changes](#breaking-changes)
-  - [New Error Class Hierarchy](#new-error-class-hierarchy)
-  - [Shoryuken::Shutdown Removed](#shoryukenshutdown-removed)
-  - [FIFO Queue Delay Validation](#fifo-queue-delay-validation)
-  - [Core Class Extensions Removed](#core-class-extensions-removed)
-  - [Concurrent-Ruby Replaced](#concurrent-ruby-replaced)
+    - [New Error Class Hierarchy](#new-error-class-hierarchy)
+    - [Shoryuken::Shutdown Removed](#shoryukenshutdown-removed)
+    - [FIFO Queue Delay Validation](#fifo-queue-delay-validation)
+    - [Core Class Extensions Removed](#core-class-extensions-removed)
+    - [Concurrent-Ruby Replaced](#concurrent-ruby-replaced)
 - [New Features](#new-features)
-  - [Bulk ActiveJob Enqueuing](#bulk-activejob-enqueuing)
-  - [ActiveJob Continuations Support](#activejob-continuations-support)
-  - [CurrentAttributes Persistence](#currentattributes-persistence)
-  - [Logging Context in Fiber Storage](#logging-context-in-fiber-storage)
+    - [Bulk ActiveJob Enqueuing](#bulk-activejob-enqueuing)
+    - [ActiveJob Continuations Support](#activejob-continuations-support)
+    - [CurrentAttributes Persistence](#currentattributes-persistence)
+    - [Logging Context in Fiber Storage](#logging-context-in-fiber-storage)
 - [Changes in 7.0.x Patch Releases](#changes-in-70x-patch-releases)
 - [Upgrade Steps](#upgrade-steps)
 
@@ -26,6 +26,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 **Breaking:** Shoryuken 7.0 requires Ruby 3.2.0 or higher. Ruby 3.1 reached end-of-life in March 2025 and is no longer supported.
 
 **Supported Ruby versions:**
+
 - Ruby 3.2
 - Ruby 3.3
 - Ruby 3.4
@@ -40,6 +41,7 @@ This guide covers the breaking changes and new features introduced in Shoryuken 
 **Breaking:** Shoryuken 7.0 requires Rails 7.2 or higher. Rails 7.0 and 7.1 reached end-of-life in April 2025.
 
 **Supported Rails versions:**
+
 - Rails 7.2
 - Rails 8.0
 - Rails 8.1
@@ -68,6 +70,7 @@ All Shoryuken errors now inherit from `Shoryuken::Errors::BaseError`:
 #### Migration Guide
 
 **Before (Shoryuken 6.x):**
+
 ```ruby
 begin
   Shoryuken::Client.queues(queue_name)
@@ -77,6 +80,7 @@ end
 ```
 
 **After (Shoryuken 7.0):**
+
 ```ruby
 begin
   Shoryuken::Client.queues(queue_name)
@@ -110,12 +114,14 @@ This class was unused since the Celluloid removal in 2016. It was originally use
 FIFO queues do not support per-message `DelaySeconds`. Previously, this would cause confusing AWS errors, especially with ActiveJob's `retry_on` (Rails 6.1+ defaults to `wait: 3.seconds`).
 
 **Before (Shoryuken 6.x):**
+
 ```ruby
 # Would silently fail or produce confusing AWS errors
 MyJob.set(wait: 3.seconds).perform_later
 ```
 
 **After (Shoryuken 7.0):**
+
 ```ruby
 # Raises a clear error with guidance
 MyJob.set(wait: 3.seconds).perform_later
@@ -128,7 +134,9 @@ MyJob.set(wait: 3.seconds).perform_later
 ```
 
 **Action Required:**
+
 1. If using FIFO queues with ActiveJob's `retry_on`, set `wait: 0`:
+
    ```ruby
    retry_on SomeException, wait: 0, attempts: 3
    ```
@@ -142,6 +150,7 @@ MyJob.set(wait: 3.seconds).perform_later
 **Breaking:** All monkey-patching of core Ruby classes (`Hash` and `String`) has been removed.
 
 Shoryuken no longer extends core classes. Instead, it provides utility modules:
+
 - `Shoryuken::Helpers::HashUtils.deep_symbolize_keys` - Replaces `Hash#deep_symbolize_keys`
 - `Shoryuken::Helpers::StringUtils.constantize` - Replaces `String#constantize`
 
@@ -149,6 +158,7 @@ Shoryuken no longer extends core classes. Instead, it provides utility modules:
 
 1. Use ActiveSupport directly if you need these methods globally
 2. Use Shoryuken's utility methods directly:
+
    ```ruby
    Shoryuken::Helpers::HashUtils.deep_symbolize_keys(my_hash)
    Shoryuken::Helpers::StringUtils.constantize('MyClass')
@@ -159,6 +169,7 @@ Shoryuken no longer extends core classes. Instead, it provides utility modules:
 **Breaking:** Internal concurrent data structures from `concurrent-ruby` have been replaced with pure Ruby implementations.
 
 This is mostly an internal change, but if you were directly accessing these internal structures, they've been replaced:
+
 - `Concurrent::AtomicFixnum` → `Shoryuken::Helpers::AtomicCounter`
 - `Concurrent::AtomicBoolean` → `Shoryuken::Helpers::AtomicBoolean`
 - `Concurrent::Hash` → `Shoryuken::Helpers::AtomicHash`
@@ -174,10 +185,12 @@ This is mostly an internal change, but if you were directly accessing these inte
 **New in Rails 7.1+:** Shoryuken now supports efficient bulk job enqueuing through `ActiveJob.perform_all_later`.
 
 The `enqueue_all` method uses SQS's `send_message_batch` API to enqueue multiple jobs efficiently:
+
 - Automatically batches jobs in groups of 10 (SQS limit); since [#1164](https://github.com/ruby-shoryuken/shoryuken/pull/1164), a batch also holds up to 1 MiB in total
 - Groups jobs by queue name for efficient multi-queue handling
 
 **Usage:**
+
 ```ruby
 # Enqueue multiple jobs at once
 ActiveJob.perform_all_later(
@@ -198,6 +211,7 @@ See [[Bulk Enqueuing]] for details, including how it handles delayed jobs.
 When Shoryuken receives a shutdown signal, the `stopping?` method in the ActiveJob adapter signals to jobs that they should checkpoint and reschedule themselves.
 
 **How it works:**
+
 1. Shoryuken tracks shutdown state in the Launcher via the `stopping?` flag
 2. Jobs can check if a shutdown is in progress and checkpoint their work
 3. Jobs can reschedule themselves to resume after the interruption
@@ -216,6 +230,7 @@ See [[CurrentAttributes]] for details.
 This feature automatically serializes current attributes into the job payload when enqueuing and restores them before execution.
 
 **Setup:**
+
 ```ruby
 # In an initializer (e.g., config/initializers/shoryuken.rb)
 require 'shoryuken/active_job/current_attributes'
@@ -226,6 +241,7 @@ Shoryuken::ActiveJob::CurrentAttributes.persist('AnotherApp::Current')
 ```
 
 **Example:**
+
 ```ruby
 class Current < ActiveSupport::CurrentAttributes
   attribute :user_id, :request_id
@@ -288,10 +304,11 @@ For the full list of fixes, see the [CHANGELOG](https://github.com/ruby-shoryuke
 ### 1. Check Ruby and Rails Versions
 
 Ensure you're running:
+
 - Ruby 3.2.0 or higher
 - Rails 7.2 or higher (if using Rails)
 
-```bash
+```shell
 ruby -v
 # Should show 3.2.0 or higher
 
@@ -309,7 +326,7 @@ Shoryuken 7.0 requires `aws-sdk-sqs` 1.66.0 or later.
 
 ### 3. Update Dependencies
 
-```bash
+```shell
 bundle update shoryuken aws-sdk-sqs
 ```
 
@@ -317,7 +334,7 @@ bundle update shoryuken aws-sdk-sqs
 
 Search your codebase for error handling around Shoryuken operations:
 
-```bash
+```shell
 # Find potential error handling that needs updating
 grep -r "rescue ArgumentError" app/
 grep -r "rescue RuntimeError" app/
@@ -341,7 +358,7 @@ retry_on SomeException, wait: 0
 
 Search for and remove any references:
 
-```bash
+```shell
 grep -r "Shoryuken::Shutdown" app/
 ```
 
@@ -349,7 +366,7 @@ grep -r "Shoryuken::Shutdown" app/
 
 Run your test suite to identify any issues:
 
-```bash
+```shell
 bundle exec rspec
 # or
 bundle exec rake test

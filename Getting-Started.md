@@ -24,8 +24,6 @@ bundle install
 
 Shoryuken uses the AWS SDK for Ruby and its usual credential sources. See [[Configure the AWS Client]].
 
----
-
 ## Plain Ruby
 
 ### 1. Create a worker
@@ -63,8 +61,6 @@ require_relative 'hello_worker'
 
 HelloWorker.perform_async('Ken')
 ```
-
----
 
 ## Rails
 
@@ -112,8 +108,6 @@ The `-R` flag loads your Rails application. For middleware and other settings, s
 HelloJob.perform_later('Ken')
 ```
 
----
-
 ## Configuration file
 
 For more complex setups, create a configuration file:
@@ -142,4 +136,3 @@ bundle exec shoryuken check -R -C config/shoryuken.yml
 It prints `Configuration OK` and exits with status 0. On a problem it exits with status 1, and for the failures listed in [[Check the configuration|Shoryuken options#check-the-configuration]] it prints `[FAIL]` with the problem.
 
 See [[Shoryuken options]] for all available configuration options.
-

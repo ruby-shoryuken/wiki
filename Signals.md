@@ -1,7 +1,7 @@
 Shoryuken traps the `INT`, `TERM`, `USR1`, `TSTP` and `TTIN` signals.
 
 | Signal | Effect | Process exits |
-|--------|--------|---------------|
+| -------- | -------- | --------------- |
 | `TTIN` | Logs the backtraces of all threads | No |
 | `TSTP` | Graceful stop: stops fetching and waits for in-flight messages | No |
 | `USR1` | Graceful stop, then exit | Yes |
@@ -13,7 +13,7 @@ When Shoryuken stops, a message that it has received but not started is made vis
 
 TTIN tells Shoryuken to log the backtraces of all threads in the process. Use it to find a hung or slow worker.
 
-```bash
+```shell
 kill -TTIN [shoryuken_pid]
 ```
 
@@ -23,7 +23,7 @@ TSTP tells Shoryuken to shut down gracefully. It will stop sending any new reque
 
 This signal does not exit Shoryuken, you still need to TERM for exiting the process.
 
-```bash
+```shell
 kill -TSTP [shoryuken_pid]
 ```
 
@@ -33,7 +33,7 @@ USR1 tells Shoryuken to shut down gracefully. It will stop sending any new reque
 
 Shoryuken exits with status 0 once everything is processed. When Shoryuken sent USR1 to itself after a fatal dispatch error (see [[Health Checks]]), it exits with status 1, so a process supervisor sees a crash.
 
-```bash
+```shell
 kill -USR1 [shoryuken_pid]
 ```
 
@@ -49,7 +49,7 @@ When a stop kills busy workers after `timeout`, Shoryuken logs a warning with th
 
 The `timeout` can be defined through the `-t` option or in the `-C shoryuken.yml` config by setting the `timeout: N` value.
 
-```bash
+```shell
 kill -TERM [shoryuken_pid]
 ```
 
@@ -58,7 +58,7 @@ INT (for example Ctrl+C in a terminal) does the same as TERM.
 ## Lifecycle events
 
 | Signal | Events fired |
-|--------|--------------|
+| -------- | -------------- |
 | `TSTP`, `USR1` | `quiet`, `shutdown`, `stopped` |
 | `TERM`, `INT` | `shutdown`, `stopped` |
 

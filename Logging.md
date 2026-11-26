@@ -1,6 +1,7 @@
 Shoryuken's default logger level is `INFO`.
 
 ## Logging in application
+
 ```ruby
 Shoryuken.logger.info("Info-level log message")
 ```
@@ -13,7 +14,7 @@ You can pass `-v` while starting Shoryuken.
 shoryuken -v
 ```
 
-### Other levels 
+### Other levels
 
 See [available levels](https://ruby-doc.org/3.4/stdlibs/logger/Logger/Severity.html).
 

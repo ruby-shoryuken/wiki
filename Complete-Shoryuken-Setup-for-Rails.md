@@ -49,7 +49,6 @@ Trigger your job where required:
 YourJob.perform_later(resource.id)
 ```
 
-
 ## Configure shoryuken.yml
 
 Make sure it's located in `config/shoryuken.yml`. This will be used by the worker to consume and process the messages sent to the queue in SQS.
