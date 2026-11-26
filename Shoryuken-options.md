@@ -77,6 +77,7 @@ It fails with `[FAIL]` on:
 - An invalid option value (see [Option validation](#option-validation))
 - `-d` without `-L`
 - A `-r` path that does not exist
+- A `polling_strategy` name that resolves to no class, in a group or, with top-level `queues`, the global one (see [[Polling strategies]])
 - An unknown worker option key, or an unsupported `body_parser` value even when it comes from `Shoryuken.default_worker_options` (see [[Worker options]])
 - A queue that does not exist
 - Missing AWS credentials or region

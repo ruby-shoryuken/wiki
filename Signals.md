@@ -43,7 +43,9 @@ Before the `timeout` window starts, a graceful stop waits for a running `Receive
 
 ## TERM
 
-TERM tells Shoryuken to hard shutdown within a `timeout`. Any processors that do not finish within the timeout are hard terminated and their messages are pushed back to AWS SQS. TERM does not wait for a running `ReceiveMessage` call before the `timeout` starts: the call counts like a busy worker and is stopped when `timeout` ends. The timeout defaults to 8 seconds since all Heroku processes must exit within 10 seconds.
+TERM tells Shoryuken to hard shutdown within a `timeout`. Any processors that do not finish within the timeout are hard terminated and their messages are pushed back to AWS SQS. TERM does not wait for a running `ReceiveMessage` call before the `timeout` starts: the call counts like a busy worker and is stopped when `timeout` ends. A TERM during a graceful stop (USR1 or TSTP) stops the process within `timeout` too, even while the graceful stop waits for a `ReceiveMessage` call. The timeout defaults to 8 seconds since all Heroku processes must exit within 10 seconds.
+
+When a stop kills busy workers after `timeout`, Shoryuken logs a warning with their count, for example `Killing 2 busy workers after the 8s shutdown timeout; their messages come back after the visibility timeout`.
 
 The `timeout` can be defined through the `-t` option or in the `-C shoryuken.yml` config by setting the `timeout: N` value.
 

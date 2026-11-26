@@ -19,7 +19,7 @@ MyWorker.perform_async('Pablo')                     # will queue to the worker's
 MyWorker.perform_async('Pablo', queue: 'important') # will queue to the 'important' queue
 ```
 
-A worker with several queues needs `queue:` when it sends to SQS (see [[queue|Worker options#queue]] in [[Worker options]]).
+A worker with several queues needs `queue:` (see [[queue|Worker options#queue]] in [[Worker options]]).
 
 ### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html):
 
@@ -75,7 +75,7 @@ Shoryuken::Client.queues(queue_name).send_message(message)
 
 ## Delaying a message
 
-You can delay a message up to 15 minutes. A longer delay raises `Shoryuken::Errors::InvalidDelayError`. A time in the past or a negative interval sends the message at once (delay 0).
+You can delay a message up to 15 minutes. Shoryuken rounds the delay up to whole seconds, and a delay over 900 seconds raises `Shoryuken::Errors::InvalidDelayError`. A time in the past or a negative interval sends the message at once (delay 0).
 
 ```ruby
 MyWorker.perform_in(60, 'Pablo') # 60 seconds
