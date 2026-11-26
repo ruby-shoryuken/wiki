@@ -1,0 +1,14 @@
+{
+  "name": "shoryuken-wiki",
+  "version": "1.0.0",
+  "description": "Documentation repository for Shoryuken",
+  "private": true,
+  "devDependencies": {
+    "markdownlint-cli2": "^0.24.0",
+    "mkdocs-material-linter": "^1.5.4"
+  },
+  "scripts": {
+    "lint": "markdownlint-cli2",
+    "lint:fix": "markdownlint-cli2 --fix"
+  }
+}

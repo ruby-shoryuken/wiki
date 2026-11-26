@@ -1,0 +1,50 @@
+{
+  "globs": [
+    "**/*.md",
+    "!node_modules/**"
+  ],
+  "customRules": [
+    "mkdocs-material-linter",
+    "./.rules/no-emdash.js",
+    "./.rules/no-horizontal-rule.js",
+    "./.rules/admonition-title-required.js",
+    "./.rules/no-generic-admonition-title.js",
+    "./.rules/no-md-link-extension.js",
+    "./.rules/no-please.js",
+    "./.rules/no-contractions.js"
+  ],
+  "config": {
+    "default": true,
+    "MD025": true,
+    "MD029": {
+      "style": "one_or_ordered"
+    },
+    "MD033": false,
+    "MD036": false,
+    "MD041": false,
+    "MD046": false,
+    "MD045": false,
+    "MD051": false,
+    "MD059": false,
+    "MD004": {
+      "style": "dash"
+    },
+    "MD007": {
+      "indent": 4
+    },
+    "MD013": {
+      "line_length": 100000,
+      "code_blocks": false,
+      "tables": false
+    },
+    "MD024": {
+      "siblings_only": true
+    },
+    "material-meta-tags": false,
+    "no-generic-admonition-title": true,
+    "no-md-link-extension": true,
+    // Enabled after the pages are normalized.
+    "no-please": false,
+    "no-contractions": false
+  }
+}
