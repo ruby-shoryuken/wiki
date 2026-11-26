@@ -1,7 +1,6 @@
 # External link check for the wiki pages (lychee).
 # Run: lychee --config .lychee.toml './*.md'
 
-# Only external http(s) URLs; relative links and [[wiki links]] are not checked.
 scheme = ["https", "http"]
 include_wikilinks = false
 # URLs in code blocks and inline code are checked too, so placeholders must be excluded.
@@ -19,9 +18,6 @@ exclude_private = true
 exclude_link_local = true
 
 exclude = [
-  # Local SQS mocks and other example hosts
-  '^https?://localhost',
-  '^https?://127\.0\.0\.1',
   '^https?://([a-z0-9-]+\.)*example\.(com|org|net)',
   # Placeholder SQS queue URLs (fake account IDs such as 123456789012)
   '^https?://sqs\.[a-z0-9-]+\.amazonaws\.com/',
