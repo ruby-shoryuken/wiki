@@ -81,7 +81,7 @@ end
 
 If you want to use `shoryuken sqs` command with a different endpoint you can pass an `--endpoint` option to the command, example:
 
-```bash
+```shell
 shoryuken sqs ls --endpoint=http://localhost:4576
 ```
 

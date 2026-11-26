@@ -21,7 +21,7 @@ Some options available in the configuration file are not available in the CLI (f
 ## CLI options
 
 | Option | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `-C, --config FILE` | Path to the YAML configuration file |
 | `-R, --rails` | Load the Rails application |
 | `-r, --require PATH` | Dir or path of the workers |
@@ -52,7 +52,7 @@ To list all CLI options: `shoryuken help start`.
 An unknown command, an unknown option or an extra argument prints an error, and `shoryuken` exits with status 1. This applies to `start`, `check`, `version` and the [[Shoryuken SQS CLI]] commands:
 
 | Input | Error |
-|-------|-------|
+| ------- | ------- |
 | `shoryuken bogus` | `Could not find command "bogus"` |
 | `shoryuken start --bogus` | `Unknown switches "--bogus"` |
 | `shoryuken start extra` | `ERROR: "shoryuken start" was called with arguments ["extra"]` |
@@ -94,7 +94,7 @@ When `shoryuken start` or `shoryuken check` loads its options, it checks the mer
 An invalid value raises `Shoryuken::Errors::InvalidConfigurationError`, and the process stops before it processes messages. The error names each invalid option by its key path, with its message. Inside a group, the key path is `groups.<name>.<key>`, for example `groups.critical.concurrency`.
 
 | Option | Valid values |
-|--------|--------------|
+| -------- | -------------- |
 | `concurrency` | An Integer greater than 0. In a group, also `nil`, which uses the global value |
 | `delay` | `nil` or a number greater than or equal to 0. A numeric String such as `"2.5"` also works |
 | `timeout` | `nil` or a number greater than or equal to 0 |
@@ -359,4 +359,3 @@ Shoryuken.add_queue('payments', 1, 'critical')
 ```
 
 `add_group` also takes `delay:` and `polling_strategy:` keyword arguments.
-

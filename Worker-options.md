@@ -79,7 +79,6 @@ When `batch` is `true`, Shoryuken sends the messages in batches instead of indiv
 
 One of the advantages of `batch` is when you use APIs that accept batch, for example [Keen IO](http://keen.io).
 
-
 ```ruby
 class KeenIOWorker
   include Shoryuken::Worker
@@ -140,10 +139,9 @@ When it's enabled, 5 seconds before the message's visibility timeout expires, Sh
 That timeout is the `visibility_timeout` set for the queue or its group in [[sqs_client_receive_message_opts|Receive Message options]], the timeout the message was received with. Without one, it is the queue's `VisibilityTimeout`.
 
 > Be generous while configuring the default visibility_timeout for a queue. If your worker in the worst case takes 2 minutes to consume a message, set the visibility_timeout to at least 4 minutes. It doesn't hurt and it will be better than having the same message being consumed more than the expected.
-> http://www.pablocantero.com/blog/2014/11/29/sqs-to-the-rescue/
+> <http://www.pablocantero.com/blog/2014/11/29/sqs-to-the-rescue/>
 
 *Note:* This feature isn't supported when using [[batch=true|Worker options#batch]].
-
 
 ### retry_intervals
 
@@ -166,7 +164,7 @@ A failure that is retried with backoff is logged and does not reach [[exception_
 
 Keep in mind that Amazon SQS does not officially support exponential backoff, it's something implemented in Shoryuken using the [visibility Timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/AboutVT.html), which can be extended to up to 12 hours. If your interval exceeds the 12 hour maximum, Shoryuken will automatically cap it to the maximum allowed.
 
-> https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ChangeMessageVisibility.html
+> <https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ChangeMessageVisibility.html>
 >
 > You can continue to call ChangeMessageVisibility to extend the visibility timeout to a maximum of 12 hours. If you try to extend beyond 12 hours, the request will be rejected.
 

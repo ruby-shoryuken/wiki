@@ -1,10 +1,10 @@
-If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html), Shoryuken will auto detect it, and just work ✨ 
+If you have a queue configured as a [FIFO Queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html), Shoryuken will auto detect it, and just work ✨
 
 ## How does that work?
 
 If you send a message using [[perform_async|Sending a message]] or [[ActiveJob|Rails Integration Active Job]], Shoryuken will automatically set the Message Group ID to `ShoryukenMessage` and the Message Deduplication ID to a SHA-256 hash of the message body (for ActiveJob, without `job_id` and `enqueued_at`).
 
-If you want to set specific values to Message Group ID and Message Deduplication ID, 
+If you want to set specific values to Message Group ID and Message Deduplication ID,
 you should use `send_message` instead:
 
 ```ruby
@@ -46,7 +46,7 @@ There's no special configuration needed to receive FIFO messages, you only need 
 
 ### Process one by one
 
-If you want to receive and process messages one by one for a Message Group, configure `max_number_of_messages: 1 
+If you want to receive and process messages one by one for a Message Group, configure `max_number_of_messages: 1
 ` as follows:
 
 ```ruby

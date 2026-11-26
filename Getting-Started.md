@@ -142,4 +142,3 @@ bundle exec shoryuken check -R -C config/shoryuken.yml
 It prints `Configuration OK` and exits with status 0. On a problem it exits with status 1, and for the failures listed in [[Check the configuration|Shoryuken options#check-the-configuration]] it prints `[FAIL]` with the problem.
 
 See [[Shoryuken options]] for all available configuration options.
-

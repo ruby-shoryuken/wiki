@@ -1,7 +1,7 @@
 The `shoryuken sqs` commands manage SQS queues from the command line. To list them, run `shoryuken help sqs`.
 
 | Command | Effect |
-|---------|--------|
+| --------- | -------- |
 | `ls [QUEUE-NAME-PREFIX]` | Lists queues |
 | `dump QUEUE-NAME` | Writes the messages of a queue to a JSON lines file |
 | `requeue QUEUE-NAME PATH` | Sends the messages of a dump file to a queue |
@@ -26,7 +26,7 @@ For the IAM actions that the commands need, see [[Amazon SQS IAM Policy for Shor
 
 ## ls
 
-```bash
+```shell
 shoryuken sqs ls [QUEUE-NAME-PREFIX]
 ```
 
@@ -41,7 +41,7 @@ An unknown option is not taken as the prefix: `shoryuken sqs ls --bogus` fails w
 
 ## dump
 
-```bash
+```shell
 shoryuken sqs dump QUEUE-NAME
 ```
 
@@ -65,7 +65,7 @@ An empty queue gives `Queue <name> is empty`, and no file is written.
 
 ## requeue
 
-```bash
+```shell
 shoryuken sqs requeue QUEUE-NAME PATH
 ```
 
@@ -85,7 +85,7 @@ For a message from a FIFO queue, `requeue` sends a new `MessageDeduplicationId` 
 
 ## mv
 
-```bash
+```shell
 shoryuken sqs mv QUEUE-NAME-SOURCE QUEUE-NAME-TARGET
 ```
 
@@ -115,7 +115,7 @@ A second `dump` of the same queue on the same day needs another `--path` (see [d
 
 ## purge
 
-```bash
+```shell
 shoryuken sqs purge QUEUE-NAME
 ```
 
@@ -123,7 +123,7 @@ Sends a purge request for the queue. SQS takes up to 60 seconds to delete the me
 
 ## create
 
-```bash
+```shell
 shoryuken sqs create QUEUE-NAME
 shoryuken sqs create my-queue.fifo -a ContentBasedDeduplication:true
 ```
@@ -136,7 +136,7 @@ A name that ends with `.fifo` sets `FifoQueue` to `true`. See [[FIFO Queues]].
 
 ## delete
 
-```bash
+```shell
 shoryuken sqs delete QUEUE-NAME
 ```
 

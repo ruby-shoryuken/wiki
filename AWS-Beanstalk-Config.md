@@ -1,5 +1,6 @@
-### Web server environment 
-To restart (or just start) Shoryuken on each deployment to Beanstalk, prepare the configuration files as described below. 
+### Web server environment
+
+To restart (or just start) Shoryuken on each deployment to Beanstalk, prepare the configuration files as described below.
 Make sure the selected EC2 instance type has enough memory to ensure the functioning of both the web server and Shoryuken.
 The instance role needs the SQS permissions listed in [[Amazon SQS IAM Policy for Shoryuken]].
 
@@ -17,7 +18,7 @@ worker: bundle exec shoryuken -R -P /var/app/current/tmp/pids/shoryuken.pid -L /
 
 `.platform/hooks/postdeploy/restart_shoryuken.sh`
 
-```sh
+```shell
 #!/bin/bash
 
 # NOTE: get-config platformconfig returns paths WITH the trailing slash .../
@@ -54,7 +55,7 @@ exit 0
 
 `.platform/hooks/predeploy/mute_shoryuken.sh`
 
-```sh
+```shell
 #!/bin/bash
 
 APP_DEPLOY_DIR=$(/opt/elasticbeanstalk/bin/get-config platformconfig -k AppDeployDir)
@@ -70,6 +71,7 @@ exit 0
 ```
 
 #### Amazon Linux 1 (deprecated platform)
+
 `.ebextensions/shoryuken.config` inside your repo.
 
 ``` yaml
@@ -118,4 +120,5 @@ files:
 ```
 
 ### Worker environment
-For information on deploying to a worker environment see the thread in https://github.com/ruby-shoryuken/shoryuken/issues/48
+
+For information on deploying to a worker environment see the thread in <https://github.com/ruby-shoryuken/shoryuken/issues/48>

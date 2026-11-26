@@ -7,9 +7,9 @@ ActiveJob.perform_all_later(jobs)
 
 ## How it works
 
-* Jobs are grouped by queue name, and each group is sent in batches of up to 10 messages and up to 1 MiB in total (the SQS batch limits). SQS counts the message body and the message attribute names, types and values.
-* After the call, `job.successfully_enqueued?` tells you whether SQS accepted each job. Failed entries are logged.
-* For FIFO queues, the adapter generates the `message_deduplication_id` as for `perform_later`. See [[Rails Integration Active Job]].
+- Jobs are grouped by queue name, and each group is sent in batches of up to 10 messages and up to 1 MiB in total (the SQS batch limits). SQS counts the message body and the message attribute names, types and values.
+- After the call, `job.successfully_enqueued?` tells you whether SQS accepted each job. Failed entries are logged.
+- For FIFO queues, the adapter generates the `message_deduplication_id` as for `perform_later`. See [[Rails Integration Active Job]].
 
 ## SQS parameters
 

@@ -1,10 +1,10 @@
 There are a couple ways to send a message using Shoryuken.
 
-### Using `perform_async`: 
+### Using `perform_async`
 
 ```ruby
 MyWorker.perform_async('Pablo')
-``` 
+```
 
 it also accepts a Hash as a parameter, which is automatically converted into JSON:
 
@@ -21,7 +21,7 @@ MyWorker.perform_async('Pablo', queue: 'important') # will queue to the 'importa
 
 A worker with several queues needs `queue:` when it sends to SQS (see [[queue|Worker options#queue]] in [[Worker options]]).
 
-### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html):
+### Or using the queue object directly , which wraps [Aws::SQS::Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/SQS/Client.html)
 
 ```ruby
 # To send a single message
@@ -33,8 +33,11 @@ Shoryuken::Client.queues('default').send_message(message_body: { example: "data"
 # To send multiple messages
 Shoryuken::Client.queues('default').send_messages(['msg 1', 'msg 2'])
 ```
+
 #### Sending a message directly for ActiveJob workers
+
 In the case that the job message is generated outside of your Rails Shoryuken via ActiveJob environment (like from a serverless function), you can still send a message to be processed by your workers.
+
 ```ruby
 queue_name = 'my-queue'
 

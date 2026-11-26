@@ -36,6 +36,6 @@ end
 
 ## How it behaves
 
-* On enqueue, the attributes of each registered class are serialized into the message body with `ActiveJob::Arguments`, so Symbols and GlobalID objects (for example ActiveRecord models) work. A class with no attributes set is not added.
-* Before the job runs, the attributes are restored. An attribute the class no longer defines is skipped. If restoring fails, Shoryuken logs a warning and runs the job anyway.
-* After every job, Shoryuken resets all registered classes, so values do not leak to the next job on the same thread.
+- On enqueue, the attributes of each registered class are serialized into the message body with `ActiveJob::Arguments`, so Symbols and GlobalID objects (for example ActiveRecord models) work. A class with no attributes set is not added.
+- Before the job runs, the attributes are restored. An attribute the class no longer defines is skipped. If restoring fails, Shoryuken logs a warning and runs the job anyway.
+- After every job, Shoryuken resets all registered classes, so values do not leak to the next job on the same thread.

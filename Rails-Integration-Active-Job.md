@@ -59,7 +59,6 @@ end
 
 *Note:* Neither Shoryuken adapter sets `provider_job_id`, so it stays `nil`. The `message_id` that SQS returns is not stored on the job.
 
-
 #### Active Job Queue Name Support
 
 *Note:* Active Job allows you to [prefix the queue names](http://edgeguides.rubyonrails.org/active_job_basics.html#queues) of all jobs. Shoryuken supports this behavior natively. By default, though, queue names defined in the config file (or passed to the CLI), are not prefixed similarly. To have Shoryuken honor Active Job prefixes, you must enable that option explicitly. A good place to do that in Rails is in an initializer:
@@ -70,7 +69,6 @@ Shoryuken.active_job_queue_name_prefixing = true
 ```
 
 Queues configured as a URL (with any scheme, such as the `http://` URLs of ElasticMQ and LocalStack) or an ARN are not prefixed. See [[Queue URL]].
-
 
 #### Active Job Queue Adapters
 
@@ -187,7 +185,7 @@ Under Shoryuken, a job's `executions` counts ActiveJob's own runs plus one for e
 For example, a job with `retry_on RetryableError, attempts: 5` that fails four times and then succeeds:
 
 | Run | Result | `executions` | `retry_on` attempts used before the run |
-|-----|--------|--------------|-----------------------------------------|
+| ----- | -------- | -------------- | ----------------------------------------- |
 | 1 | Raises `RetryableError` | 1 | 0 |
 | 2 | Raises `RetryableError` | 2 | 1 |
 | 3 | Raises an error that `retry_on` does not handle; SQS redelivers the message | 3 | 2 |
