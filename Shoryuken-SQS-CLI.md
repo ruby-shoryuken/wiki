@@ -33,7 +33,7 @@ shoryuken sqs ls [QUEUE-NAME-PREFIX]
 Prints a table of the queues whose names start with the prefix, or of all queues without a prefix. It shows at most 1,000 queues, the SQS limit for one `ListQueues` call. The columns are `Queue`, `Messages Available`, `Messages Inflight` and `Last Modified`.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-w`, `--watch` | | Prints the table again until you press Ctrl-C |
 | `-n`, `--interval` | `2` | Seconds between two tables with `--watch` |
 
@@ -48,7 +48,7 @@ shoryuken sqs dump QUEUE-NAME
 Receives the messages of the queue and writes them to `<queue-name>-<date>.jsonl`, one message per line. The date is today's date, for example `my-queue-2026-10-19.jsonl`.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--number` | all | The number of messages to dump |
 | `-p`, `--path` | `./` | The directory for the dump file |
 | `-d`, `--delete` | `true` | Deletes the dumped messages from the queue. Use `--no-delete` to keep them |
@@ -72,7 +72,7 @@ shoryuken sqs requeue QUEUE-NAME PATH
 Sends the messages of a dump file to the queue. It does not change the file.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--batch_size` | `10` | The maximum number of messages in one send batch |
 
 Shoryuken also keeps each batch within the SQS batch payload limit (1 MiB).
@@ -92,7 +92,7 @@ shoryuken sqs mv QUEUE-NAME-SOURCE QUEUE-NAME-TARGET
 Receives the messages of the source queue and sends them to the target queue.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-n`, `--number` | all | The number of messages to move |
 | `-d`, `--delete` | `true` | Deletes the moved messages from the source queue. Use `--no-delete` to keep them |
 
@@ -129,7 +129,7 @@ shoryuken sqs create my-queue.fifo -a ContentBasedDeduplication:true
 ```
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `-a`, `--attributes` | `{}` | Queue attributes as `Name:value` pairs |
 
 A name that ends with `.fifo` sets `FifoQueue` to `true`. See [[FIFO Queues]].

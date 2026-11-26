@@ -35,13 +35,13 @@ Shoryuken.configure_client { |config| config.sqs_client = sqs_client }
 
 [Install moto](https://github.com/spulec/moto#stand-alone-server-mode) with:
 
-```
+```shell
 pip install moto[server]
 ```
 
 To run it:
 
-```
+```shell
 moto_server sqs -p 4576 -H localhost
 ```
 

@@ -75,13 +75,17 @@ end
 
 The default server chain holds, in this order:
 
+<!-- markdownlint-disable MD056 MD060 -->
+
 | Middleware | What it does |
-| ------------ | -------------- |
-| `Shoryuken::Middleware::Server::Timing` | Logs when processing starts and how long it took. Warns `exceeded the queue visibility timeout by N ms` when a job takes longer than the queue's visibility timeout, unless the job raises an error that no later middleware handles. Reads the timeout with one `GetQueueAttributes` request per job, or once per queue with [[cache_visibility_timeout | Shoryuken options#cache_visibility_timeout]]. See [[Keep the visibility timeout longer than your longest job | Best Practices#keep-the-visibility-timeout-longer-than-your-longest-job]]. |
-| `Shoryuken::Middleware::Server::NonRetryableException` | Deletes the message when the worker raises one of its [[non_retryable_exceptions | Worker options#non_retryable_exceptions]] |
-| `Shoryuken::Middleware::Server::ExponentialBackoffRetry` | Applies the worker's [[retry_intervals | Worker options#retry_intervals]] |
-| `Shoryuken::Middleware::Server::AutoDelete` | Deletes the message after success when [[auto_delete | Worker options#auto_delete]] is on |
-| `Shoryuken::Middleware::Server::AutoExtendVisibility` | Extends the visibility timeout when [[auto_visibility_timeout | Worker options#auto_visibility_timeout]] is on |
+|------------|--------------|
+| `Shoryuken::Middleware::Server::Timing` | Logs when processing starts and how long it took. Warns `exceeded the queue visibility timeout by N ms` when a job takes longer than the queue's visibility timeout, unless the job raises an error that no later middleware handles. Reads the timeout with one `GetQueueAttributes` request per job, or once per queue with [[cache_visibility_timeout|Shoryuken options#cache_visibility_timeout]]. See [[Keep the visibility timeout longer than your longest job|Best Practices#keep-the-visibility-timeout-longer-than-your-longest-job]]. |
+| `Shoryuken::Middleware::Server::NonRetryableException` | Deletes the message when the worker raises one of its [[non_retryable_exceptions|Worker options#non_retryable_exceptions]] |
+| `Shoryuken::Middleware::Server::ExponentialBackoffRetry` | Applies the worker's [[retry_intervals|Worker options#retry_intervals]] |
+| `Shoryuken::Middleware::Server::AutoDelete` | Deletes the message after success when [[auto_delete|Worker options#auto_delete]] is on |
+| `Shoryuken::Middleware::Server::AutoExtendVisibility` | Extends the visibility timeout when [[auto_visibility_timeout|Worker options#auto_visibility_timeout]] is on |
 | `Shoryuken::Middleware::Server::ActiveRecord` | Returns ActiveRecord connections to the pool after each message. Added only when `ActiveRecord::Base` is defined |
+
+<!-- markdownlint-enable MD056 MD060 -->
 
 The four option-based middleware do nothing for a worker that does not use the option. Use `chain.remove` or `chain.insert_before` with these class names to change the default chain.

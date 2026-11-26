@@ -56,7 +56,7 @@ INT (for example Ctrl+C in a terminal) does the same as TERM.
 ## Lifecycle events
 
 | Signal | Events fired |
-|--------|--------------|
+| -------- | -------------- |
 | `TSTP`, `USR1` | `quiet`, `shutdown`, `stopped` |
 | `TERM`, `INT` | `shutdown`, `stopped` |
 

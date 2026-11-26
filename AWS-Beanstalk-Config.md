@@ -9,7 +9,7 @@ The instance role needs the SQS permissions listed in [[Amazon SQS IAM Policy fo
 Generally, it is recommended to run more complex projects on AWS EB with your own Procfile, it gives greater control over the version of the web server and other parameters.
 The easiest way to add a shoryuken worker in Elastic Beanstalk is to simply add the command to run it to the Procfile as `worker:`
 
-```
+```text
 web: bundle exec puma -C /opt/elasticbeanstalk/config/private/pumaconf.rb --pidfile /var/app/current/tmp/pids/server.pid
 worker: bundle exec shoryuken -R -P /var/app/current/tmp/pids/shoryuken.pid -L /var/app/current/log/shoryuken.log
 ```
