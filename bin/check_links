@@ -1,62 +1,64 @@
 #!/usr/bin/env node
-'use strict'
 
 // Checks the internal links of the wiki pages:
 // - [[Page name]] and [[text|Page name#anchor]]: the page exists and the anchor matches a heading.
 // - relative Markdown links ([text](Page-name#anchor), [text](#anchor)): the same checks.
 // - full-URL links to this wiki (github.com/<owner>/shoryuken/wiki/...): must be [[...]] links.
-// Code blocks and inline code are skipped. Prints file:line for each failure.
+// Fenced code blocks and inline code are skipped. Prints file:line for each failure.
 //
 // Usage: bin/check_links [page.md ...]   (default: every page)
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..')
-const WIKI_URL = /https?:\/\/(www\.)?github\.com\/[^/\s]+\/shoryuken\/wiki\b[^\s)>\]"']*/gi
-const WIKI_LINK = /\[\[([^\]]+)\]\]/g
-const MD_LINK = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g
-const SCHEME = /^[a-z][a-z0-9+.-]*:/i
+const ROOT = path.resolve(__dirname, '..');
+const WIKI_URL = /https?:\/\/(www\.)?github\.com\/[^/\s]+\/shoryuken\/wiki\b[^\s)>\]"']*/gi;
+const WIKI_LINK = /\[\[([^\]]+)\]\]/g;
+const MD_LINK = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g;
+const SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 
-function usage (message) {
-  process.stderr.write(`${message}\nUsage: bin/check_links [page.md ...]\n`)
-  process.exit(2)
+function usage(message) {
+  process.stderr.write(`${message}\nUsage: bin/check_links [page.md ...]\n`);
+  process.exit(2);
 }
 
-function read (file) {
-  const buffer = fs.readFileSync(file)
-  const text = buffer.toString('utf8')
+function read(file) {
+  const buffer = fs.readFileSync(file);
+  const text = buffer.toString('utf8');
   if (!Buffer.from(text, 'utf8').equals(buffer)) {
-    process.stderr.write(`${path.relative(ROOT, file)}: invalid UTF-8\n`)
-    process.exit(2)
+    process.stderr.write(`${path.relative(ROOT, file)}: invalid UTF-8\n`);
+    process.exit(2);
   }
-  return text
+  return text;
 }
 
-// Lines outside fenced code blocks: [{ number, text }].
-function outsideFences (text) {
-  const lines = []
-  let fence = null
+function outsideFences(text) {
+  const lines = [];
+  let fence = null;
   text.split(/\r?\n/).forEach((line, index) => {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/)
+    const marker = line.match(/^\s*(`{3,}|~{3,})/);
     if (fence) {
-      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length &&
-          line.trim() === marker[1]) {
-        fence = null
+      if (
+        marker &&
+        marker[1][0] === fence[0] &&
+        marker[1].length >= fence.length &&
+        line.trim() === marker[1]
+      ) {
+        fence = null;
       }
-      return
+      return;
     }
     if (marker) {
-      fence = marker[1]
-      return
+      fence = marker[1];
+      return;
     }
-    lines.push({ number: index + 1, text: line })
-  })
-  return lines
+    lines.push({ number: index + 1, text: line });
+  });
+  return lines;
 }
 
-// GitHub heading slug: lowercase, drop punctuation, spaces to '-'.
-function slug (heading) {
+// Must equal the user-content-* id GitHub gives the rendered heading.
+function slug(heading) {
   return heading
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/<[^>]+>/g, '')
@@ -65,90 +67,93 @@ function slug (heading) {
     .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '')
-    .replace(/ /g, '-')
+    .replace(/ /g, '-');
 }
 
-function decode (name) {
+function decode(name) {
   try {
-    return decodeURIComponent(name)
+    return decodeURIComponent(name);
   } catch {
-    return name
+    return name;
   }
 }
 
-function anchors (text) {
-  const result = new Set()
-  const counts = new Map()
+function anchors(text) {
+  const result = new Set();
+  const counts = new Map();
   for (const { text: line } of outsideFences(text)) {
     for (const html of line.matchAll(/<a\s[^>]*\b(?:name|id)=["']([^"']+)["']/gi)) {
-      result.add(html[1])
+      result.add(html[1]);
     }
-    const heading = line.match(/^ {0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/)
-    if (!heading) continue
-    const base = slug(heading[1])
-    const count = counts.get(base) || 0
-    counts.set(base, count + 1)
-    result.add(count === 0 ? base : `${base}-${count}`)
+    const heading = line.match(/^ {0,3}#{1,6}\s+(.*?)(?:\s+#+)?\s*$/);
+    if (!heading) continue;
+    const base = slug(heading[1]);
+    const count = counts.get(base) || 0;
+    counts.set(base, count + 1);
+    result.add(count === 0 ? base : `${base}-${count}`);
   }
-  return result
+  return result;
 }
 
-const args = process.argv.slice(2)
+const args = process.argv.slice(2);
 for (const arg of args) {
-  if (arg.startsWith('-')) usage(`Unknown option: ${arg}`)
-  if (!arg.endsWith('.md') || !fs.existsSync(arg)) usage(`Not a Markdown file: ${arg}`)
+  if (arg.startsWith('-')) usage(`Unknown option: ${arg}`);
+  if (!arg.endsWith('.md') || !fs.existsSync(arg)) usage(`Not a Markdown file: ${arg}`);
 }
 
-const pageFiles = fs.readdirSync(ROOT).filter((name) => name.endsWith('.md')).sort()
-const pages = new Map(pageFiles.map((name) => [name.slice(0, -3), path.join(ROOT, name)]))
-const anchorCache = new Map()
+const pageFiles = fs
+  .readdirSync(ROOT)
+  .filter((name) => name.endsWith('.md'))
+  .sort();
+const pages = new Map(pageFiles.map((name) => [name.slice(0, -3), path.join(ROOT, name)]));
+const anchorCache = new Map();
 const pageAnchors = (page) => {
-  if (!anchorCache.has(page)) anchorCache.set(page, anchors(read(pages.get(page))))
-  return anchorCache.get(page)
-}
+  if (!anchorCache.has(page)) anchorCache.set(page, anchors(read(pages.get(page))));
+  return anchorCache.get(page);
+};
 
-const files = args.length ? args.map((arg) => path.resolve(arg)) : [...pages.values()]
-const failures = []
+const files = args.length ? args.map((arg) => path.resolve(arg)) : [...pages.values()];
+const failures = [];
 
-function check (file, number, page, anchor, link) {
-  const where = `${path.relative(ROOT, file)}:${number}`
+function check(file, number, page, anchor, link) {
+  const where = `${path.relative(ROOT, file)}:${number}`;
   if (!pages.has(page)) {
-    failures.push(`${where}: ${link}: page "${page}" does not exist`)
+    failures.push(`${where}: ${link}: page "${page}" does not exist`);
   } else if (anchor && !pageAnchors(page).has(anchor)) {
-    failures.push(`${where}: ${link}: no heading for "#${anchor}" in ${page}.md`)
+    failures.push(`${where}: ${link}: no heading for "#${anchor}" in ${page}.md`);
   }
 }
 
 for (const file of files) {
-  const self = path.basename(file, '.md')
-  if (!anchorCache.has(self)) anchorCache.set(self, anchors(read(file)))
+  const self = path.basename(file, '.md');
+  if (!anchorCache.has(self)) anchorCache.set(self, anchors(read(file)));
 
   for (const { number, text: line } of outsideFences(read(file))) {
-    const text = line.replace(/(`+)[\s\S]*?\1/g, '')
+    const text = line.replace(/(`+)[\s\S]*?\1/g, '');
     for (const match of text.matchAll(WIKI_URL)) {
-      const url = match[0].replace(/[.,;:!?]+$/, '')
-      failures.push(`${path.relative(ROOT, file)}:${number}: ${url}: use a [[...]] link`)
+      const url = match[0].replace(/[.,;:!?]+$/, '');
+      failures.push(`${path.relative(ROOT, file)}:${number}: ${url}: use a [[...]] link`);
     }
 
     for (const match of text.matchAll(WIKI_LINK)) {
-      const parts = match[1].split(/\\?\|/)
-      const target = parts[parts.length - 1].trim()
-      const [name, anchor] = target.split('#')
-      check(file, number, name ? name.replace(/ /g, '-') : self, anchor, match[0])
+      const parts = match[1].split(/\\?\|/);
+      const target = parts[parts.length - 1].trim();
+      const [name, anchor] = target.split('#');
+      check(file, number, name ? name.replace(/ /g, '-') : self, anchor, match[0]);
     }
 
     for (const match of text.matchAll(MD_LINK)) {
-      const target = match[1]
-      if (SCHEME.test(target) || target.startsWith('/')) continue
-      const [name, anchor] = target.split('#')
-      check(file, number, name ? decode(name) : self, anchor, `(${target})`)
+      const target = match[1];
+      if (SCHEME.test(target) || target.startsWith('/')) continue;
+      const [name, anchor] = target.split('#');
+      check(file, number, name ? decode(name) : self, anchor, `(${target})`);
     }
   }
 }
 
-failures.forEach((failure) => console.log(failure))
+failures.forEach((failure) => console.log(failure));
 if (failures.length) {
-  console.log(`\n${failures.length} broken internal link(s)`)
-  process.exit(1)
+  console.log(`\n${failures.length} broken internal link(s)`);
+  process.exit(1);
 }
-console.log(`Checked ${files.length} page(s): all internal links resolve`)
+console.log(`Checked ${files.length} page(s): all internal links resolve`);
