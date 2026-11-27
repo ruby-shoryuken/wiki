@@ -13,7 +13,7 @@ const fs = require('fs')
 const path = require('path')
 
 const ROOT = path.resolve(__dirname, '..')
-const WIKI_URL = /https?:\/\/(www\.)?github\.com\/[^/\s]+\/shoryuken\/wiki\b[^\s)>\]"']*/g
+const WIKI_URL = /https?:\/\/(www\.)?github\.com\/[^/\s]+\/shoryuken\/wiki\b[^\s)>\]"']*/gi
 const WIKI_LINK = /\[\[([^\]]+)\]\]/g
 const MD_LINK = /\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g
 const SCHEME = /^[a-z][a-z0-9+.-]*:/i
