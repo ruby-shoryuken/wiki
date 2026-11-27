@@ -11,7 +11,7 @@ If you are not using Rails `--rails`, which auto loads initializers, just add th
 
 ## Idle queues
 
-Use long polling for a queue that is often empty, in a group where it is the only queue (see [Groups with more than one queue](#groups-with-more-than-one-queue)). The SQS default for `ReceiveMessageWaitTimeSeconds` is 0 and Shoryuken's [`delay`](https://github.com/ruby-shoryuken/shoryuken/wiki/Shoryuken-options#delay) defaults to 0. With both at 0, an idle group calls `ReceiveMessage` again as soon as the previous call returns: about one call per network round trip. SQS bills each call as a request (see [Amazon SQS pricing](https://aws.amazon.com/sqs/pricing/)).
+Use long polling for a queue that is often empty, in a group where it is the only queue (see [Groups with more than one queue](#groups-with-more-than-one-queue)). The SQS default for `ReceiveMessageWaitTimeSeconds` is 0 and Shoryuken's [[delay|Shoryuken options#delay]] defaults to 0. With both at 0, an idle group calls `ReceiveMessage` again as soon as the previous call returns: about one call per network round trip. SQS bills each call as a request (see [Amazon SQS pricing](https://aws.amazon.com/sqs/pricing/)).
 
 In a test against ElasticMQ with a simulated round trip of 20 ms, one idle queue got 43.6 `ReceiveMessage` calls per second without long polling (about 113 million in 30 days) and 0.07 calls per second with `wait_time_seconds: 20`.
 
