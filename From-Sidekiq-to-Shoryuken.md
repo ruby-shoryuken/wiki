@@ -34,7 +34,7 @@ class MyWorker
 end
 ```
 
-Note that if your Sidekiq worker has more than 1 argument you will need to configure message body parser for Shoryuken worker and define only one argument in a `#perform` method:
+Shoryuken calls `perform` with two arguments: the message and its body (a [[batch|Worker options#batch]] worker: `perform(sqs_msgs, bodies)`). `shoryuken check` fails for a worker whose `perform` cannot take them (see [[Check the configuration|Shoryuken options#check-the-configuration]]). If your Sidekiq worker has more than one argument, send them in one body, set a [[body_parser|Worker options#body_parser]] and read them from the body:
 
 ```ruby
 class YourWorker

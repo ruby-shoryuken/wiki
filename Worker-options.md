@@ -91,6 +91,8 @@ class KeenIOWorker
 end
 ```
 
+The `perform` method of a batch worker takes two arguments, `(sqs_msgs, bodies)`: the messages and their bodies, as arrays. `shoryuken check` fails for a batch worker whose `perform` cannot take them (see [[Check the configuration|Shoryuken options#check-the-configuration]]).
+
 If you are using a custom middleware, check [[Middleware]], the `sqs_msg` and `body` are arrays when `batch=true`.
 
 Another important observation regarding batchable workers is if one of your messages causes an exception, consequently `auto_delete` won't be executed for any message.
