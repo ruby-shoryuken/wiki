@@ -41,6 +41,8 @@ class HelloWorker
 end
 ```
 
+Shoryuken calls `perform` with two arguments: the `Shoryuken::Message` and the message body. A [[batch|Worker options#batch]] worker gets `perform(sqs_msgs, bodies)`. `shoryuken check` fails for a worker of a configured queue whose `perform` cannot take them (see [[Check the configuration|Shoryuken options#check-the-configuration]]).
+
 ### 2. Create a queue
 
 ```shell
