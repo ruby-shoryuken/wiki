@@ -83,7 +83,7 @@ It fails with `[FAIL]` on:
 - Missing AWS credentials or region
 - No queues: `No queues supplied`
 - A queue without a worker: `No worker supplied for <queue>`, one line for each queue. When ActiveJob is loaded, queues without a worker are not reported
-- A worker of a configured queue whose `perform` cannot be called as `perform(sqs_msg, body)` (a [[batch|Worker options#batch]] worker: `perform(sqs_msgs, bodies)`), one line for each worker. Every worker registered for the queue is checked, except an abstract base worker (no public `perform`, with a subclass) that is not the last one registered for the queue. For a batch worker, the lines name `(sqs_msgs, bodies)`:
+- A worker of a configured queue whose `perform` cannot be called as `perform(sqs_msg, body)` (a [[batch|Worker options#batch]] worker: `perform(sqs_msgs, bodies)`), one line for each worker. A parent class without `perform` is not checked when a subclass calls `shoryuken_options` for the same queue after it (see [[Worker registry]]):
     - `<Worker>#perform must accept (sqs_msg, body); it takes (<parameters>)` for a wrong signature
     - `<Worker> must define perform(sqs_msg, body)` for a missing or non-public `perform`, also one that works only through `method_missing`
 
