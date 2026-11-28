@@ -91,7 +91,7 @@ class KeenIOWorker
 end
 ```
 
-The `perform` method of a batch worker takes two arguments, `(sqs_msgs, bodies)`: the messages and their bodies, as arrays. `shoryuken check` fails for a batch worker whose `perform` cannot take them (see [[Check the configuration|Shoryuken options#check-the-configuration]]).
+The `perform` method of a batch worker takes two arguments, `(sqs_msgs, bodies)`: the messages and their bodies, as arrays. `shoryuken check` fails for a batch worker of a configured queue whose `perform` cannot take them (see [[Check the configuration|Shoryuken options#check-the-configuration]]).
 
 If you are using a custom middleware, check [[Middleware]], the `sqs_msg` and `body` are arrays when `batch=true`.
 
